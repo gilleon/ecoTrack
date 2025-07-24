@@ -6,7 +6,7 @@ import {
   onAuthStateChanged, 
   User as FirebaseUser 
 } from 'firebase/auth';
-import { firebaseApp } from '../config/firebaseConfig';
+import firebaseApp from '../config/firebaseConfig';
 
 const auth = getAuth(firebaseApp);
 
