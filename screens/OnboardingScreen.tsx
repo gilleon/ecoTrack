@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { ProgressIndicator } from '../components/ProgressIndicator';
 import { OnboardingButton } from '../components/OnboardingButton';
@@ -9,6 +10,22 @@ import { onboardingSteps } from '../data/onboardingSteps';
 interface OnboardingScreenProps {
   onComplete: () => void;
 }
+
+const IconRenderer = ({ iconFamily, iconName, size, color }: {
+  iconFamily: string;
+  iconName: string;
+  size: number;
+  color: string;
+}) => {
+  switch (iconFamily) {
+    case 'MaterialIcons':
+      return <MaterialIcons name={iconName as any} size={size} color={color} />;
+    case 'Ionicons':
+      return <Ionicons name={iconName as any} size={size} color={color} />;
+    default:
+      return <MaterialIcons name="help" size={size} color={color} />;
+  }
+};
 
 export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   const { 
@@ -64,7 +81,12 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         <View style={styles.mainContent}>
           <Animated.View style={[styles.card, animatedStyle]}>
             <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
-              <Text style={styles.iconText}>{currentStepData.icon}</Text>
+              <IconRenderer
+                iconFamily={currentStepData.iconFamily}
+                iconName={currentStepData.icon}
+                size={40}
+                color="#2D5A3D"
+              />
             </Animated.View>
 
             <Animated.Text style={styles.title}>
@@ -143,9 +165,6 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     borderWidth: 1,
     borderColor: '#E0F2E0',
-  },
-  iconText: {
-    fontSize: 40,
   },
   title: {
     fontSize: 24,

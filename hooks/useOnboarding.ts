@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 export interface OnboardingStep {
   icon: string;
+  iconFamily: 'MaterialIcons' | 'Ionicons';
   title: string;
   description: string;
   highlight: string;
