@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -58,7 +59,13 @@ export const OnboardingButton: React.FC<OnboardingButtonProps> = ({
       ]}>
         {title}
       </Text>
-      {showArrow && <Text style={styles.arrow}>→</Text>}
+      {showArrow && (
+        <Ionicons 
+          name="arrow-forward" 
+          size={16} 
+          color={variant === 'primary' ? 'white' : '#6B7280'} 
+        />
+      )}
     </AnimatedPressable>
   );
 };
@@ -88,9 +95,5 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     color: '#6B7280',
-  },
-  arrow: {
-    fontSize: 16,
-    color: 'white',
   },
 });
