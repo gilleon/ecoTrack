@@ -1,5 +1,12 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface OnboardingButtonProps {
   onPress: () => void;
@@ -18,13 +25,29 @@ export const OnboardingButton: React.FC<OnboardingButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+  };
+
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
-      style={({ pressed }) => [
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[
         styles.button,
         variant === 'primary' ? styles.primaryButton : styles.secondaryButton,
-        pressed && styles.pressed,
+        animatedStyle,
         style,
       ]}
     >
@@ -36,7 +59,7 @@ export const OnboardingButton: React.FC<OnboardingButtonProps> = ({
         {title}
       </Text>
       {showArrow && <Text style={styles.arrow}>→</Text>}
-    </Pressable>
+    </AnimatedPressable>
   );
 };
 
@@ -55,9 +78,6 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: 'transparent',
-  },
-  pressed: {
-    opacity: 0.8,
   },
   buttonText: {
     fontSize: 16,

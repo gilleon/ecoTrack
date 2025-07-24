@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { ProgressIndicator } from '../components/ProgressIndicator';
 import { OnboardingButton } from '../components/OnboardingButton';
@@ -18,13 +19,42 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     totalSteps 
   } = useOnboarding(onboardingSteps);
 
+  const opacity = useSharedValue(1);
+  const scale = useSharedValue(1);
+  const translateY = useSharedValue(0);
+
+  const animateTransition = (callback: () => void) => {
+    opacity.value = withTiming(0, { duration: 200 }, () => {
+      runOnJS(callback)();
+      translateY.value = withSpring(0, { damping: 15, stiffness: 100 });
+      scale.value = withSpring(1, { damping: 15, stiffness: 100 });
+      opacity.value = withTiming(1, { duration: 300 });
+    });
+    scale.value = withTiming(0.9, { duration: 200 });
+    translateY.value = withTiming(20, { duration: 200 });
+  };
+
   const handleNext = () => {
     if (isLast) {
-      onComplete();
+      animateTransition(onComplete);
     } else {
-      goNext();
+      animateTransition(goNext);
     }
   };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [
+      { scale: scale.value },
+      { translateY: translateY.value },
+    ],
+  }));
+
+  const iconAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: withSpring(1, { damping: 12, stiffness: 100 }) },
+    ],
+  }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -32,18 +62,23 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
         <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
         <View style={styles.mainContent}>
-          <View style={styles.card}>
-            <View style={styles.iconContainer}>
+          <Animated.View style={[styles.card, animatedStyle]}>
+            <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
               <Text style={styles.iconText}>{currentStepData.icon}</Text>
-            </View>
+            </Animated.View>
 
-            <Text style={styles.title}>{currentStepData.title}</Text>
-            <Text style={styles.description}>{currentStepData.description}</Text>
+            <Animated.Text style={styles.title}>
+              {currentStepData.title}
+            </Animated.Text>
             
-            <View style={styles.highlightContainer}>
+            <Animated.Text style={styles.description}>
+              {currentStepData.description}
+            </Animated.Text>
+            
+            <Animated.View style={styles.highlightContainer}>
               <Text style={styles.highlight}>{currentStepData.highlight}</Text>
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         </View>
 
         <View style={styles.navigationContainer}>
@@ -73,7 +108,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: 24,
     paddingVertical: 40,
   },
   mainContent: {
@@ -85,8 +120,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: 'white',
     borderRadius: 24,
-    paddingVertical: 40,
-    paddingHorizontal: 20,
+    padding: 40,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
