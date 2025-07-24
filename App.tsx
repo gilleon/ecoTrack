@@ -1,21 +1,32 @@
 import React from 'react';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useAppState } from './hooks/useAppState';
 import { AppContainer } from './components/AppContainer';
 import { AppNavigator } from './navigation/AppNavigator';
 
-export default function App() {
-  const { currentScreen, completeOnboarding } = useAppState();
+function AppContent() {
+  const { currentScreen, completeOnboarding, openSettings, goBack } = useAppState();
 
   return (
     <AppContainer>
       <AppNavigator
         currentScreen={currentScreen}
         onOnboardingComplete={completeOnboarding}
+        onOpenSettings={openSettings}
+        onGoBack={goBack}
       />
-      <StatusBar style="auto" />
     </AppContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+      <StatusBar style="auto" />
+    </ThemeProvider>
   );
 }
 
