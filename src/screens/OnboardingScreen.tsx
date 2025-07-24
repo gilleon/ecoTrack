@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useOnboarding } from '../hooks/useOnboarding';
-import { ProgressIndicator } from '../components/ProgressIndicator';
-import { OnboardingButton } from '../components/OnboardingButton';
+import { ProgressIndicator } from '../components/ui/ProgressIndicator';
+import { OnboardingButton } from '../components/ui/OnboardingButton';
 import { onboardingSteps } from '../data/onboardingSteps';
 
 interface OnboardingScreenProps {

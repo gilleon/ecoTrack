@@ -1,11 +1,11 @@
 import React from 'react';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './src/contexts/ThemeContext';
+import { AuthProvider } from './src/contexts/AuthContext';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
-import { useAppState } from './hooks/useAppState';
-import { AppContainer } from './components/AppContainer';
-import { AppNavigator } from './navigation/AppNavigator';
+import { useAppState } from './src/hooks/useAppState';
+import { AppContainer } from './src/components/ui/AppContainer';
+import { AppNavigator } from './src/components/navigation/AppNavigator';
 
 function AppContent() {
   const {

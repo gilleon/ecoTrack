@@ -1,10 +1,10 @@
 import React from 'react';
-import { AppScreen } from '../hooks/useAppState';
-import OnboardingScreen from '../screens/OnboardingScreen';
-import LoginScreen from '../screens/LoginScreen';
-import SignUpScreen from '../screens/SignUpScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import { MainContent } from '../components/MainContent';
+import { AppScreen } from '../../hooks/useAppState';
+import OnboardingScreen from '../../screens/OnboardingScreen';
+import LoginScreen from '../../screens/LoginScreen';
+import SignUpScreen from '../../screens/SignUpScreen';
+import SettingsScreen from '../../screens/SettingsScreen';
+import { MainContent } from '../../components/MainContent';
 
 interface AppNavigatorProps {
   currentScreen: AppScreen;
