@@ -1,19 +1,28 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { useAppState } from './hooks/useAppState';
+import { AppContainer } from './components/AppContainer';
+import { AppNavigator } from './navigation/AppNavigator';
 
 export default function App() {
+  const { currentScreen, completeOnboarding } = useAppState();
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+    <AppContainer>
+      <AppNavigator
+        currentScreen={currentScreen}
+        onOnboardingComplete={completeOnboarding}
+      />
       <StatusBar style="auto" />
-    </View>
+    </AppContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
