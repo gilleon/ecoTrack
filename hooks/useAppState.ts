@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export type AppScreen = 'onboarding' | 'main' | 'settings';
+export type AppScreen = 'onboarding' | 'login' | 'signup' | 'main' | 'settings';
 
 export const useAppState = (initialScreen: AppScreen = 'onboarding') => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(initialScreen);
@@ -10,7 +10,27 @@ export const useAppState = (initialScreen: AppScreen = 'onboarding') => {
   };
 
   const completeOnboarding = () => {
+    setCurrentScreen('login');
+  };
+
+  const handleLogin = () => {
     setCurrentScreen('main');
+  };
+
+  const handleDemoMode = () => {
+    setCurrentScreen('main');
+  };
+
+  const handleSignUp = () => {
+    setCurrentScreen('signup');
+  };
+
+  const handleSignUpComplete = () => {
+    setCurrentScreen('main');
+  };
+
+  const backToLogin = () => {
+    setCurrentScreen('login');
   };
 
   const openSettings = () => {
@@ -20,6 +40,10 @@ export const useAppState = (initialScreen: AppScreen = 'onboarding') => {
   const goBack = () => {
     if (currentScreen === 'settings') {
       setCurrentScreen('main');
+    } else if (currentScreen === 'login') {
+      setCurrentScreen('onboarding');
+    } else if (currentScreen === 'signup') {
+      setCurrentScreen('login');
     }
   };
 
@@ -27,9 +51,16 @@ export const useAppState = (initialScreen: AppScreen = 'onboarding') => {
     currentScreen,
     navigateToScreen,
     completeOnboarding,
+    handleLogin,
+    handleDemoMode,
+    handleSignUp,
+    handleSignUpComplete,
+    backToLogin,
     openSettings,
     goBack,
     isOnboarding: currentScreen === 'onboarding',
+    isLogin: currentScreen === 'login',
+    isSignUp: currentScreen === 'signup',
     isMainApp: currentScreen === 'main',
     isSettings: currentScreen === 'settings',
   };
