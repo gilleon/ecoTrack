@@ -1,5 +1,6 @@
 import React from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
 import { useAppState } from './hooks/useAppState';
@@ -7,13 +8,28 @@ import { AppContainer } from './components/AppContainer';
 import { AppNavigator } from './navigation/AppNavigator';
 
 function AppContent() {
-  const { currentScreen, completeOnboarding, openSettings, goBack } = useAppState();
+  const {
+    currentScreen,
+    completeOnboarding,
+    handleLogin,
+    handleDemoMode,
+    handleSignUp,
+    handleSignUpComplete,
+    backToLogin,
+    openSettings,
+    goBack,
+  } = useAppState();
 
   return (
     <AppContainer>
       <AppNavigator
         currentScreen={currentScreen}
         onOnboardingComplete={completeOnboarding}
+        onLogin={handleLogin}
+        onDemoMode={handleDemoMode}
+        onSignUp={handleSignUp}
+        onSignUpComplete={handleSignUpComplete}
+        onBackToLogin={backToLogin}
         onOpenSettings={openSettings}
         onGoBack={goBack}
       />
@@ -24,7 +40,9 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
       <StatusBar style="auto" />
     </ThemeProvider>
   );
