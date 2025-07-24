@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface AuthButtonProps {
@@ -24,13 +25,20 @@ export const AuthButton: React.FC<AuthButtonProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors, variant);
 
+  const renderIcon = () => {
+    if (icon === 'leaf-outline') {
+      return <Ionicons name="leaf-outline" size={20} color={variant === 'primary' ? 'white' : colors.text} />;
+    }
+    return null;
+  };
+
   return (
     <Pressable
       style={[styles.button, (loading || disabled) && styles.buttonDisabled]}
       onPress={onPress}
       disabled={loading || disabled}
     >
-      {icon && <Text style={styles.icon}>{icon}</Text>}
+      {icon && renderIcon()}
       <Text style={styles.buttonText}>
         {loading && loadingText ? loadingText : title}
       </Text>
@@ -58,8 +66,5 @@ const createStyles = (colors: any, variant: 'primary' | 'secondary') => StyleShe
     fontSize: 16,
     fontWeight: variant === 'primary' ? '600' : '500',
     color: variant === 'primary' ? 'white' : colors.text,
-  },
-  icon: {
-    fontSize: 16,
   },
 });

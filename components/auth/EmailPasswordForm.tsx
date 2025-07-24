@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthInput } from './AuthInput';
 
 interface EmailPasswordFormProps {
@@ -30,7 +31,7 @@ export const EmailPasswordForm: React.FC<EmailPasswordFormProps> = ({
     <>
       <AuthInput
         label="Email"
-        icon="✉️"
+        icon={<Ionicons name="mail-outline" size={20} />}
         placeholder="Enter your email"
         value={email}
         onChangeText={onEmailChange}
@@ -42,7 +43,7 @@ export const EmailPasswordForm: React.FC<EmailPasswordFormProps> = ({
 
       <AuthInput
         label="Password"
-        icon="🔒"
+        icon={<Ionicons name="lock-closed-outline" size={20} />}
         placeholder="Enter your password"
         value={password}
         onChangeText={onPasswordChange}
@@ -56,7 +57,7 @@ export const EmailPasswordForm: React.FC<EmailPasswordFormProps> = ({
       {showConfirmPassword && onConfirmPasswordChange && (
         <AuthInput
           label="Confirm Password"
-          icon="🔒"
+          icon={<Ionicons name="lock-closed-outline" size={20} />}
           placeholder="Confirm your password"
           value={confirmPassword}
           onChangeText={onConfirmPasswordChange}

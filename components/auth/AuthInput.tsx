@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, TextInputProps } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface AuthInputProps extends TextInputProps {
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   showPasswordToggle?: boolean;
   isPasswordVisible?: boolean;
   onTogglePassword?: () => void;
@@ -27,7 +28,11 @@ export const AuthInput: React.FC<AuthInputProps> = ({
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.inputContainer}>
-        <Text style={styles.inputIcon}>{icon}</Text>
+        <View style={styles.iconContainer}>
+          {React.isValidElement(icon)
+            ? React.cloneElement(icon as React.ReactElement<any>, { color: colors.textSecondary })
+            : icon}
+        </View>
         <TextInput
           style={styles.input}
           placeholderTextColor={colors.textSecondary}
@@ -40,9 +45,11 @@ export const AuthInput: React.FC<AuthInputProps> = ({
             style={styles.eyeButton}
             disabled={disabled}
           >
-            <Text style={styles.eyeIcon}>
-              {isPasswordVisible ? '👁️' : '👁️‍🗨️'}
-            </Text>
+            <Ionicons 
+              name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'} 
+              size={20} 
+              color={colors.textSecondary} 
+            />
           </Pressable>
         )}
       </View>
@@ -69,9 +76,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingHorizontal: 16,
     height: 48,
   },
-  inputIcon: {
-    fontSize: 16,
+  iconContainer: {
     marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   input: {
     flex: 1,
@@ -80,8 +88,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   eyeButton: {
     padding: 4,
-  },
-  eyeIcon: {
-    fontSize: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

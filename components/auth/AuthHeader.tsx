@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface AuthHeaderProps {
@@ -29,7 +30,7 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
       )}
       
       <View style={styles.logoContainer}>
-        <Text style={styles.logoIcon}>🏔️</Text>
+        <MaterialIcons name="terrain" size={28} color={colors.primary} />
         <Text style={styles.logoText}>EcoTrack</Text>
       </View>
       <Text style={styles.subtitle}>Track your impact, one adventure at a time</Text>
@@ -59,10 +60,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
-  },
-  logoIcon: {
-    fontSize: 24,
-    marginRight: 8,
+    gap: 8,
   },
   logoText: {
     fontSize: 24,
