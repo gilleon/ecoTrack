@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-export type AppScreen = 'onboarding' | 'login' | 'signup' | 'main' | 'settings';
+import { AppScreen } from '../types/navigation';
 
 export const useAppState = (initialScreen: AppScreen = 'onboarding') => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(initialScreen);
