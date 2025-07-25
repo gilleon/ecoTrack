@@ -1,10 +1,12 @@
 import React from 'react';
-import { AppScreen } from '../../hooks/useAppState';
+import { View, StyleSheet } from 'react-native';
+import { AppScreen } from '../../types/navigation';
 import OnboardingScreen from '../../screens/OnboardingScreen';
 import LoginScreen from '../../screens/LoginScreen';
 import SignUpScreen from '../../screens/SignUpScreen';
 import SettingsScreen from '../../screens/SettingsScreen';
-import { MainContent } from '../../components/MainContent';
+import { MainAppNavigator } from './MainAppNavigator';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface AppNavigatorProps {
   currentScreen: AppScreen;
@@ -29,29 +31,48 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({
   onOpenSettings,
   onGoBack,
 }) => {
-  switch (currentScreen) {
-    case 'onboarding':
-      return <OnboardingScreen onComplete={onOnboardingComplete} />;
-    case 'login':
-      return (
-        <LoginScreen
-          onLogin={onLogin}
-          onDemoMode={onDemoMode}
-          onSignUp={onSignUp}
-        />
-      );
-    case 'signup':
-      return (
-        <SignUpScreen
-          onSignUp={onSignUpComplete}
-          onBackToLogin={onBackToLogin}
-        />
-      );
-    case 'main':
-      return <MainContent onOpenSettings={onOpenSettings} />;
-    case 'settings':
-      return <SettingsScreen onBack={onGoBack} />;
-    default:
-      return <MainContent onOpenSettings={onOpenSettings} />;
-  }
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'onboarding':
+        return <OnboardingScreen onComplete={onOnboardingComplete} />;
+      case 'login':
+        return (
+          <LoginScreen
+            onLogin={onLogin}
+            onDemoMode={onDemoMode}
+            onSignUp={onSignUp}
+          />
+        );
+      case 'signup':
+        return (
+          <SignUpScreen
+            onSignUp={onSignUpComplete}
+            onBackToLogin={onBackToLogin}
+          />
+        );
+      case 'main':
+        return <MainAppNavigator onOpenSettings={onOpenSettings} />;
+      case 'settings':
+        return <SettingsScreen onBack={onGoBack} />;
+      default:
+        return <MainAppNavigator onOpenSettings={onOpenSettings} />;
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {renderScreen()}
+    </View>
+  );
 };
+
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+  });
