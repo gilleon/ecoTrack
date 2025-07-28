@@ -7,6 +7,7 @@ import { StyleSheet } from 'react-native';
 import { useAppState } from './src/hooks/useAppState';
 import { AppContainer } from './src/components/ui/AppContainer';
 import { AppNavigator } from './src/components/navigation/AppNavigator';
+import { UnitsProvider } from './src/contexts/UnitsContext';
 
 function AppContent() {
   const {
@@ -43,7 +44,9 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
-          <AppContent />
+          <UnitsProvider>
+            <AppContent />
+          </UnitsProvider>
         </AuthProvider>
       </ThemeProvider>
       <StatusBar style="auto" />
