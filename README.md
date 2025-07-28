@@ -42,19 +42,45 @@ EcoTrack is a mobile app designed for hikers and nature enthusiasts who want to 
   - Persistent authentication state with AsyncStorage
   - Demo mode for testing without account creation
 
+- ✅ **Core App Navigation & Dashboard**
+  - Main dashboard with impact visualization and recent actions
+  - 5-tab bottom navigation (Dashboard, Log Action, Trips, Profile, Settings)
+  - Dynamic theme switching (Light/Dark mode) with context API
+  - Customizable units system (Imperial/Metric weight units)
+
+- ✅ **Impact Logging System**
+  - Action logging screen with multiple eco-action types
+  - Form validation and data persistence with AsyncStorage
+  - Impact tracking with weight conversion (lbs ↔ kg)
+  - Action type categories: Trash Pickup, Recycling, Zero Waste Camping, Education
+
+- ✅ **Data Management & Statistics**
+  - Comprehensive user statistics tracking (total actions, waste collected, CO₂ offset)
+  - Real-time dashboard updates with progress visualization
+  - Recent actions display with unit conversion
+  - Achievement progress tracking with eco-score calculation
+
+- ✅ **Settings & Personalization**
+  - Complete settings screen with theme and unit preferences
+  - Data management utilities (export and clear all data functionality)
+  - User profile screen with impact summary and activity timeline
+  - Modular settings components with proper state management
+
 - ✅ **UI/UX Foundation**
-  - Modular component architecture with reusable auth components
-  - Theme system with consistent color scheme and typography
-  - Material Design principles with custom styling
-  - Responsive design with keyboard handling
+  - Modular component architecture with reusable components
+  - Comprehensive theme system with consistent design language
+  - Material Design principles with custom eco-friendly styling
+  - Responsive design with keyboard handling and accessibility features
 
 ### Technical Implementation
 - **Authentication**: Firebase Web SDK with React Native persistence
-- **State Management**: Context API for auth state and theme
-- **Form Handling**: Custom hooks for validation and form state
+- **State Management**: Context API for auth, theme, and units management
+- **Data Storage**: AsyncStorage for offline-first data persistence
+- **Form Handling**: Custom hooks for validation and form state management
 - **Icons**: Expo Vector Icons (MaterialIcons, Ionicons)
-- **Navigation**: Custom screen navigation system
-- **TypeScript**: Full type safety throughout the app
+- **Navigation**: Custom screen navigation with 5-tab bottom navigation
+- **TypeScript**: Full type safety throughout the application
+- **Utility Functions**: Modular data management and validation utilities
 
 ---
 
@@ -65,6 +91,8 @@ EcoTrack follows Google's Material Design 3 principles, creating an intuitive an
 The Material Design implementation includes elevated cards for content grouping, floating action buttons for primary actions like logging eco-activities, and a comprehensive color palette that reflects nature themes. Typography follows Material Design's type scale with custom weights optimized for outdoor readability, ensuring important information remains visible even in challenging lighting conditions.
 
 Interactive elements like buttons, inputs, and navigation components utilize Material Design's state system with proper focus indicators, ripple effects, and accessibility features. The design system maintains consistency across all screens while allowing for contextual adaptations, such as high-contrast modes for outdoor use and simplified interfaces for quick action logging during hikes.
+
+The app now features a complete theme system with light and dark mode support, ensuring optimal visibility in various outdoor lighting conditions. The dynamic units system allows users to choose between Imperial (pounds) and Metric (kilograms) measurements, with automatic conversion throughout the application.
 
 ---
 
@@ -78,15 +106,15 @@ Below are the wireframes showcasing the user interface and flow of EcoTrack:
 
 ![Home Screen Wireframe](./assets/wireframes/homescreen.jpg)
 
-*Main dashboard showing current trip status and quick action logging*
+*Main dashboard with impact visualization and navigation*
 
 ![Impact Logging Wireframe](./assets/wireframes/log-screen.jpg)
 
-*Interface for logging eco-friendly actions with geolocation*
+*Action logging interface with form validation and type selection*
 
 ![Trip Summary Wireframe](/assets/wireframes/stat-screen.jpg)
 
-*Visual impact summary with charts and exportable reports*
+*Profile screen with statistics and settings access*
 
 ---
 
@@ -111,18 +139,20 @@ Whether you're venturing solo or leading a group, EcoTrack helps you turn outdoo
 - ✅ Core UI component library
 - ✅ Theme system and responsive design
 
-### Phase 2: Core Features (🚧 In Progress)
-- 🔜 Main dashboard and navigation
-- 🔜 Impact logging interface
-- 🔜 Trip tracking and GPS integration
-- 🔜 Badge system and gamification
-- 🔜 Settings and user profile
+### Phase 2: Core Features (✅ Complete)
+- ✅ Main dashboard with impact visualization
+- ✅ 5-tab navigation system (Dashboard, Log, Trips, Profile, Settings)
+- ✅ Impact logging interface with action type selection
+- ✅ User statistics tracking and progress visualization
+- ✅ Settings system with theme and units customization
+- ✅ Data management with clear/export functionality
 
-### Phase 3: Data & Visualization (📋 Planned)
-- 🔜 Impact data storage and management
-- 🔜 Trip summaries with charts
-- 🔜 Progress tracking and statistics
+### Phase 3: Data & Advanced Features (🚧 In Progress)
+- 🔜 Trip tracking and GPS integration
+- 🔜 Badge system and achievement unlocking
+- 🔜 Enhanced data visualization with charts
 - 🔜 Offline data sync capabilities
+- 🔜 Photo attachment for logged actions
 
 ### Phase 4: Social & Community (📋 Future)
 - 🔜 User profiles and social features
@@ -142,9 +172,14 @@ Whether you're venturing solo or leading a group, EcoTrack helps you turn outdoo
 
 - **Frontend**: Expo React Native with TypeScript
 - **Authentication**: Firebase Auth with AsyncStorage persistence
+- **Data Storage**: AsyncStorage for offline-first architecture
 - **UI Framework**: Custom component library with Material Design principles
 - **Icons**: Expo Vector Icons (MaterialIcons, Ionicons)
-- **State Management**: React Context API
+- **State Management**: React Context API for global state
+- **Form Management**: Custom hooks with validation utilities
+- **Navigation**: Custom tab-based navigation system
+- **Theme System**: Dynamic light/dark mode switching
+- **Units System**: Imperial/Metric conversion utilities
 - **Backend**: Firebase (Authentication, planned: Firestore)
 - **Planned Sensors**: GPS, camera, barometer
 - **Development Tools**: VS Code, Expo CLI, Git
@@ -184,6 +219,13 @@ EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 EXPO_PUBLIC_FIREBASE_APP_ID=your-app-id
 ```
+
+### Current App Features
+- **Dashboard**: Impact visualization with dynamic units and progress tracking
+- **Action Logging**: Multiple eco-action types with form validation
+- **Profile**: User statistics, activity timeline, and settings access
+- **Settings**: Theme switching, units preference, and data management
+- **Data Persistence**: Offline-first with AsyncStorage, automatic data sync
 
 ---
 
