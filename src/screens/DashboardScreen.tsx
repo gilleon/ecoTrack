@@ -1,85 +1,96 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { DashboardCard } from '../components/ui/DashboardCard';
-import { ImpactWidget } from '../components/ui/ImpactWidget';
-import { ImpactProgressBar } from '../components/ui/ImpactProgressBar';
+import { storageService } from '../services/storageService';
+import { UserStats, EcoActionData } from '../types';
+import { LoadingState } from '../components/common/LoadingState';
+import { DashboardHeader } from '../components/dashboard/DashboardHeader';
+import { AdventureCard } from '../components/dashboard/AdventureCard';
+import { StatsRow } from '../components/dashboard/StatsRow';
+import { ImpactSection } from '../components/dashboard/ImpactSection';
+import { RecentActions } from '../components/dashboard/RecentActions';
+import { AchievementProgress } from '../components/dashboard/AchievementProgress';
 
 interface DashboardScreenProps {
   onStartTrip: () => void;
 }
 
+const INITIAL_STATS: UserStats = {
+  totalActions: 0,
+  totalWasteCollected: 0,
+  totalCO2Offset: 0,
+  ecoScore: 0,
+  badgesEarned: 0,
+  lastActionDate: null,
+  lastUpdated: new Date().toISOString()
+};
+
+const PROGRESS_TARGETS = { maxWaste: 50, maxCO2: 100 };
+
 export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const [userStats, setUserStats] = useState<UserStats>(INITIAL_STATS);
+  const [recentActions, setRecentActions] = useState<EcoActionData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadUserData = async () => {
+    try {
+      const [stats, actions] = await Promise.all([
+        storageService.getUserStats(),
+        storageService.getRecentActions(3)
+      ]);
+      setUserStats(stats);
+      setRecentActions(actions);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUserData();
+    const interval = setInterval(loadUserData, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return <LoadingState message="Loading your impact..." />;
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-
-        <View style={styles.header}>
-          <Text style={styles.greeting}>Good morning! 🌱</Text>
-          <Text style={styles.subtitle}>Ready to make a positive impact today?</Text>
-        </View>
+        <DashboardHeader
+          totalActions={userStats.totalActions}
+          lastActionDate={userStats.lastActionDate}
+        />
         
-        <DashboardCard
-          title="Current Adventure"
-          icon="terrain"
-          iconFamily="MaterialIcons"
-        >
-          <Text style={styles.adventureSubtitle}>Ready for your next adventure?</Text>
-          <Pressable style={styles.startTripButton} onPress={onStartTrip}>
-            <MaterialIcons name="terrain" size={20} color="white" />
-            <Text style={styles.startTripText}>Start New Trip</Text>
-          </Pressable>
-        </DashboardCard>
+        <AdventureCard
+          totalActions={userStats.totalActions}
+          onStartTrip={onStartTrip}
+        />
 
-        <View style={styles.statsRow}>
-          <ImpactWidget
-            icon="eco"
-            iconFamily="MaterialIcons"
-            title="EcoScore"
-            value="45"
-            unit=""
-            color="#4CAF50"
-          />
-          <ImpactWidget
-            icon="star"
-            iconFamily="MaterialIcons"
-            title="Badges Earned"
-            value="2"
-            unit=""
-            color="#FF9800"
-          />
-        </View>
+        <StatsRow
+          ecoScore={userStats.ecoScore}
+          badgesEarned={userStats.badgesEarned}
+        />
 
-        <DashboardCard
-          title="Your Impact"
-          icon="trending-up"
-          iconFamily="MaterialIcons"
-        >
-          <View style={styles.impactSection}>
-            <ImpactProgressBar
-              icon="delete"
-              title="Waste Collected"
-              value="2.5 lbs"
-              progress={0.6}
-              color="#FF6B6B"
-            />
-            <ImpactProgressBar
-              icon="eco"
-              title="CO₂ Offset"
-              value="12 kg"
-              progress={0.8}
-              color="#4CAF50"
-            />
-            <View style={styles.totalActions}>
-              <Text style={styles.totalActionsLabel}>Total Actions</Text>
-              <Text style={styles.totalActionsValue}>3</Text>
-            </View>
-          </View>
-        </DashboardCard>
+        <ImpactSection
+          totalWasteCollected={userStats.totalWasteCollected}
+          totalCO2Offset={userStats.totalCO2Offset}
+          totalActions={userStats.totalActions}
+          progressTargets={PROGRESS_TARGETS}
+        />
+
+        <RecentActions actions={recentActions} />
+
+        <AchievementProgress
+          totalActions={userStats.totalActions}
+          ecoScore={userStats.ecoScore}
+        />
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -87,79 +98,17 @@ export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
   );
 }
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    scrollView: {
-      flex: 1,
-      paddingHorizontal: 16,
-      paddingTop: 20,
-    },
-    header: {
-      paddingTop: 20,
-      paddingBottom: 16,
-    },
-    greeting: {
-      fontSize: 24,
-      fontWeight: "700",
-      color: colors.text,
-      marginBottom: 4,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
-    },
-    adventureSubtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      marginBottom: 16,
-      textAlign: "center",
-    },
-    startTripButton: {
-      backgroundColor: colors.primary,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-      gap: 8,
-    },
-    startTripText: {
-      color: "white",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    statsRow: {
-      flexDirection: "row",
-      gap: 12,
-      marginBottom: 16,
-    },
-    impactSection: {
-      gap: 16,
-    },
-    totalActions: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingTop: 8,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-    },
-    totalActionsLabel: {
-      fontSize: 16,
-      color: colors.text,
-      fontWeight: "500",
-    },
-    totalActionsValue: {
-      fontSize: 20,
-      color: colors.text,
-      fontWeight: "700",
-    },
-    bottomSpacing: {
-      height: 20,
-    },
-  });
+const createStyles = (colors: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+  },
+  bottomSpacing: {
+    height: 20,
+  },
+});
