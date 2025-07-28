@@ -9,68 +9,93 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
-import { ScreenHeader } from '../components/common/ScreenHeader';
+import { useUnits } from '../contexts/UnitsContext';
+import { storageService } from '../services/storageService';
 import { SettingsSection } from '../components/settings/SettingsSection';
 import { SettingsCard } from '../components/settings/SettingsCard';
 import { SettingsMenuItem } from '../components/settings/SettingsMenuItem';
 import { ThemeSelector } from '../components/settings/ThemeSelector';
-import { SettingsSwitch } from '../components/settings/SettingsSwitch';
+import { UnitSelector } from '../components/settings/UnitSelector';
 
 interface SettingsScreenProps {
   onBack: () => void;
 }
 
 export default function SettingsScreen({ onBack }: SettingsScreenProps) {
-  const { colors } = useTheme();
+  const { colors, setThemeMode } = useTheme();
+  const { setWeightUnit, setCarbonUnit } = useUnits();
   const styles = createStyles(colors);
+  const [isClearing, setIsClearing] = useState(false);
 
-  const [notifications, setNotifications] = useState(true);
-  const [analytics, setAnalytics] = useState(false);
-  const [autoSync, setAutoSync] = useState(true);
+  const resetContextsToDefaults = () => {
+    setThemeMode('light');
 
-  const handleDataExport = () => {
-    Alert.alert(
-      'Export Data',
-      'Export your eco-action data to share or backup.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Export', onPress: () => console.log('Exporting data...') },
-      ]
-    );
+    setWeightUnit('lb');
+
+    setCarbonUnit('kg');
   };
 
   const handleDataClear = () => {
     Alert.alert(
       'Clear All Data',
-      'This will permanently delete all your eco-actions and progress. This action cannot be undone.',
+      'This will permanently delete all your eco-actions and progress. This action cannot be undone.\n\nAre you absolutely sure you want to continue?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Clear Data',
+          text: 'Clear All Data',
           style: 'destructive',
-          onPress: () => console.log('Clearing data...'),
+          onPress: confirmDataClear,
         },
       ]
     );
   };
 
-  const handleFeedback = () => {
+  const confirmDataClear = () => {
     Alert.alert(
-      'Feedback',
-      'Thank you for your interest! Feedback system coming soon.'
+      'Final Confirmation',
+      'This is your last chance to cancel. All your eco-actions, progress, and statistics will be permanently deleted.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes, Delete Everything',
+          style: 'destructive',
+          onPress: performDataClear,
+        },
+      ]
     );
   };
 
-  const handleSupport = () => {
-    Alert.alert('Support', 'Need help? Contact us at support@ecotrack.app');
-  };
+  const performDataClear = async () => {
+    setIsClearing(true);
 
-  const handlePrivacy = () => {
-    Alert.alert('Privacy Policy', 'Privacy policy details coming soon.');
-  };
+    try {
+      await storageService.clearAllData();
 
-  const handleTerms = () => {
-    Alert.alert('Terms of Service', 'Terms of service details coming soon.');
+      resetContextsToDefaults();
+
+      Alert.alert(
+        'Data Cleared Successfully',
+        'All your data has been permanently deleted. The app will now show as if you\'re starting fresh.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setIsClearing(false);
+              onBack();
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      setIsClearing(false);
+
+      Alert.alert(
+        'Clear Data Failed',
+        'There was an error clearing your data. Please try again or contact support if the problem persists.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   return (
@@ -95,81 +120,21 @@ export default function SettingsScreen({ onBack }: SettingsScreenProps) {
           </SettingsCard>
         </SettingsSection>
 
-        <SettingsSection title="Notifications">
-          <SettingsMenuItem
-            icon="notifications"
-            title="Push Notifications"
-            subtitle="Get reminders and achievements"
-            onPress={() => {}}
-            rightElement={
-              <SettingsSwitch
-                value={notifications}
-                onValueChange={setNotifications}
-              />
-            }
-            showArrow={false}
-          />
+        <SettingsSection title="Units & Measurements">
+          <SettingsCard
+            title="Weight Units"
+            description="Choose your preferred weight measurement system"
+          >
+            <UnitSelector />
+          </SettingsCard>
         </SettingsSection>
 
         <SettingsSection title="Data & Privacy">
           <SettingsMenuItem
-            icon="sync"
-            title="Auto Sync"
-            subtitle="Automatically sync your data"
-            onPress={() => {}}
-            rightElement={
-              <SettingsSwitch
-                value={autoSync}
-                onValueChange={setAutoSync}
-              />
-            }
-            showArrow={false}
-          />
-          <SettingsMenuItem
-            icon="analytics"
-            title="Usage Analytics"
-            subtitle="Help improve EcoTrack"
-            onPress={() => {}}
-            rightElement={
-              <SettingsSwitch
-                value={analytics}
-                onValueChange={setAnalytics}
-              />
-            }
-            showArrow={false}
-          />
-          <SettingsMenuItem
-            icon="file-download"
-            title="Export Data"
-            subtitle="Download your eco-action data"
-            onPress={handleDataExport}
-          />
-          <SettingsMenuItem
             icon="delete-forever"
-            title="Clear All Data"
-            subtitle="Permanently delete all data"
-            onPress={handleDataClear}
-          />
-        </SettingsSection>
-
-        <SettingsSection title="Support">
-          <SettingsMenuItem
-            icon="feedback"
-            title="Send Feedback"
-            subtitle="Help us improve EcoTrack"
-            onPress={handleFeedback}
-          />
-          <SettingsMenuItem
-            icon="help"
-            title="Help & Support"
-            subtitle="Get help with using EcoTrack"
-            onPress={handleSupport}
-          />
-          <SettingsMenuItem
-            icon="bug-report"
-            title="Report a Bug"
-            subtitle="Let us know about issues"
-            onPress={handleFeedback}
+            title={isClearing ? "Clearing Data..." : "Clear All Data"}
+            subtitle={isClearing ? "Please wait..." : "Permanently delete all data"}
+            onPress={isClearing ? () => {} : handleDataClear}
           />
         </SettingsSection>
 
@@ -182,10 +147,6 @@ export default function SettingsScreen({ onBack }: SettingsScreenProps) {
               <View style={styles.versionRow}>
                 <Text style={styles.versionLabel}>Version</Text>
                 <Text style={styles.versionValue}>1.0.0</Text>
-              </View>
-              <View style={styles.versionRow}>
-                <Text style={styles.versionLabel}>Build</Text>
-                <Text style={styles.versionValue}>2025.1.28</Text>
               </View>
             </View>
           </SettingsCard>
