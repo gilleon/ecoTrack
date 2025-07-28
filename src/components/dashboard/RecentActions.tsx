@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useUnits } from '../../contexts/UnitsContext';
 import { DashboardCard } from '../ui/DashboardCard';
 import { storageService } from '../../services/storageService';
 import { EcoActionData } from '../../types';
@@ -11,9 +12,21 @@ interface RecentActionsProps {
 
 export const RecentActions: React.FC<RecentActionsProps> = ({ actions }) => {
   const { colors } = useTheme();
+  const { weightUnit, convertWeight } = useUnits();
   const styles = createStyles(colors);
 
   if (actions.length === 0) return null;
+
+  const formatImpactValue = (action: EcoActionData): string => {
+    const isWeightAction = action.actionType === 'trash_pickup' || action.actionType === 'recycling';
+    
+    if (isWeightAction) {
+      const convertedValue = convertWeight(action.impact, 'lb', weightUnit);
+      return `${convertedValue.toFixed(1)} ${weightUnit}`;
+    }
+    
+    return `${action.impact} ${action.impactUnit}`;
+  };
 
   const renderRecentAction = (action: EcoActionData) => (
     <View key={action.id} style={styles.recentActionItem}>
@@ -25,7 +38,7 @@ export const RecentActions: React.FC<RecentActionsProps> = ({ actions }) => {
           {action.description}
         </Text>
         <Text style={styles.recentActionImpact}>
-          {action.impact} {action.impactUnit}
+          {formatImpactValue(action)}
           {action.location && ` • ${action.location}`}
         </Text>
       </View>
