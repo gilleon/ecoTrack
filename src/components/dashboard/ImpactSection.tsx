@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useUnits } from '../../contexts/UnitsContext';
 import { DashboardCard } from '../ui/DashboardCard';
 import { ImpactProgressBar } from '../ui/ImpactProgressBar';
 
@@ -18,9 +19,23 @@ export const ImpactSection: React.FC<ImpactSectionProps> = ({
   progressTargets,
 }) => {
   const { colors } = useTheme();
+  const { weightUnit, convertWeight } = useUnits();
   const styles = createStyles(colors);
 
   const getProgress = (value: number, max: number) => Math.min(value / max, 1);
+
+  const getWasteDisplayData = () => {
+    const convertedValue = convertWeight(totalWasteCollected, 'lb', weightUnit);
+    const convertedTarget = convertWeight(progressTargets.maxWaste, 'lb', weightUnit);
+    
+    return {
+      value: convertedValue,
+      target: convertedTarget,
+      displayValue: `${convertedValue.toFixed(1)} ${weightUnit}`,
+    };
+  };
+
+  const wasteData = getWasteDisplayData();
 
   return (
     <DashboardCard title="Your Impact" icon="trending-up" iconFamily="MaterialIcons">
@@ -28,14 +43,14 @@ export const ImpactSection: React.FC<ImpactSectionProps> = ({
         <ImpactProgressBar
           icon="delete"
           title="Waste Collected"
-          value={`${totalWasteCollected} lbs`}
-          progress={getProgress(totalWasteCollected, progressTargets.maxWaste)}
+          value={wasteData.displayValue}
+          progress={getProgress(wasteData.value, wasteData.target)}
           color="#FF6B6B"
         />
         <ImpactProgressBar
           icon="eco"
           title="CO₂ Offset"
-          value={`${totalCO2Offset} kg`}
+          value={`${totalCO2Offset.toFixed(1)} kg CO₂`}
           progress={getProgress(totalCO2Offset, progressTargets.maxCO2)}
           color="#4CAF50"
         />
@@ -69,5 +84,14 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontSize: 20,
     color: colors.text,
     fontWeight: '700',
+  },
+  unitInfo: {
+    paddingTop: 4,
+  },
+  unitText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 });
