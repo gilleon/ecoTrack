@@ -1,212 +1,250 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Pressable,
+  Alert,
 } from 'react-native';
-import { useTheme, ThemeMode } from '../contexts/ThemeContext';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
+import { ScreenHeader } from '../components/common/ScreenHeader';
+import { SettingsSection } from '../components/settings/SettingsSection';
+import { SettingsCard } from '../components/settings/SettingsCard';
+import { SettingsMenuItem } from '../components/settings/SettingsMenuItem';
+import { ThemeSelector } from '../components/settings/ThemeSelector';
+import { SettingsSwitch } from '../components/settings/SettingsSwitch';
 
 interface SettingsScreenProps {
   onBack: () => void;
 }
 
 export default function SettingsScreen({ onBack }: SettingsScreenProps) {
-  const { themeMode, colors, setThemeMode } = useTheme();
-
-  const themeOptions: { value: ThemeMode; label: string; description: string }[] = [
-    { value: 'light', label: 'Light', description: 'Always use light theme' },
-    { value: 'dark', label: 'Dark', description: 'Always use dark theme' },
-  ];
-
+  const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const [notifications, setNotifications] = useState(true);
+  const [analytics, setAnalytics] = useState(false);
+  const [autoSync, setAutoSync] = useState(true);
+
+  const handleDataExport = () => {
+    Alert.alert(
+      'Export Data',
+      'Export your eco-action data to share or backup.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Export', onPress: () => console.log('Exporting data...') },
+      ]
+    );
+  };
+
+  const handleDataClear = () => {
+    Alert.alert(
+      'Clear All Data',
+      'This will permanently delete all your eco-actions and progress. This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear Data',
+          style: 'destructive',
+          onPress: () => console.log('Clearing data...'),
+        },
+      ]
+    );
+  };
+
+  const handleFeedback = () => {
+    Alert.alert(
+      'Feedback',
+      'Thank you for your interest! Feedback system coming soon.'
+    );
+  };
+
+  const handleSupport = () => {
+    Alert.alert('Support', 'Need help? Contact us at support@ecotrack.app');
+  };
+
+  const handlePrivacy = () => {
+    Alert.alert('Privacy Policy', 'Privacy policy details coming soon.');
+  };
+
+  const handleTerms = () => {
+    Alert.alert('Terms of Service', 'Terms of service details coming soon.');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={onBack} style={styles.backButton}>
-          <Text style={styles.backText}>← Back</Text>
-        </Pressable>
+        <MaterialIcons
+          name="arrow-back"
+          size={24}
+          color={colors.primary}
+          onPress={onBack}
+        />
         <Text style={styles.title}>Settings</Text>
       </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Appearance</Text>
-          
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Theme</Text>
-            <Text style={styles.cardDescription}>
-              Choose how EcoTrack looks on your device
-            </Text>
-            
-            {themeOptions.map((option) => (
-              <Pressable
-                key={option.value}
-                style={[
-                  styles.option,
-                  themeMode === option.value && styles.selectedOption,
-                ]}
-                onPress={() => setThemeMode(option.value)}
-              >
-                <View style={styles.optionContent}>
-                  <Text style={[
-                    styles.optionLabel,
-                    themeMode === option.value && styles.selectedOptionLabel,
-                  ]}>
-                    {option.label}
-                  </Text>
-                  <Text style={[
-                    styles.optionDescription,
-                    themeMode === option.value && styles.selectedOptionDescription,
-                  ]}>
-                    {option.description}
-                  </Text>
-                </View>
-                <View style={[
-                  styles.radioButton,
-                  themeMode === option.value && styles.selectedRadioButton,
-                ]}>
-                  {themeMode === option.value && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        </View>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <SettingsSection title="Appearance">
+          <SettingsCard
+            title="Theme"
+            description="Choose how EcoTrack looks on your device"
+          >
+            <ThemeSelector />
+          </SettingsCard>
+        </SettingsSection>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
-          
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>EcoTrack</Text>
-            <Text style={styles.cardDescription}>
-              Your companion for responsible outdoor adventures
-            </Text>
-            <Text style={styles.version}>Version 1.0.0</Text>
-          </View>
-        </View>
+        <SettingsSection title="Notifications">
+          <SettingsMenuItem
+            icon="notifications"
+            title="Push Notifications"
+            subtitle="Get reminders and achievements"
+            onPress={() => {}}
+            rightElement={
+              <SettingsSwitch
+                value={notifications}
+                onValueChange={setNotifications}
+              />
+            }
+            showArrow={false}
+          />
+        </SettingsSection>
+
+        <SettingsSection title="Data & Privacy">
+          <SettingsMenuItem
+            icon="sync"
+            title="Auto Sync"
+            subtitle="Automatically sync your data"
+            onPress={() => {}}
+            rightElement={
+              <SettingsSwitch
+                value={autoSync}
+                onValueChange={setAutoSync}
+              />
+            }
+            showArrow={false}
+          />
+          <SettingsMenuItem
+            icon="analytics"
+            title="Usage Analytics"
+            subtitle="Help improve EcoTrack"
+            onPress={() => {}}
+            rightElement={
+              <SettingsSwitch
+                value={analytics}
+                onValueChange={setAnalytics}
+              />
+            }
+            showArrow={false}
+          />
+          <SettingsMenuItem
+            icon="file-download"
+            title="Export Data"
+            subtitle="Download your eco-action data"
+            onPress={handleDataExport}
+          />
+          <SettingsMenuItem
+            icon="delete-forever"
+            title="Clear All Data"
+            subtitle="Permanently delete all data"
+            onPress={handleDataClear}
+          />
+        </SettingsSection>
+
+        <SettingsSection title="Support">
+          <SettingsMenuItem
+            icon="feedback"
+            title="Send Feedback"
+            subtitle="Help us improve EcoTrack"
+            onPress={handleFeedback}
+          />
+          <SettingsMenuItem
+            icon="help"
+            title="Help & Support"
+            subtitle="Get help with using EcoTrack"
+            onPress={handleSupport}
+          />
+          <SettingsMenuItem
+            icon="bug-report"
+            title="Report a Bug"
+            subtitle="Let us know about issues"
+            onPress={handleFeedback}
+          />
+        </SettingsSection>
+
+        <SettingsSection title="About">
+          <SettingsCard title="EcoTrack">
+            <View style={styles.aboutContent}>
+              <Text style={styles.aboutDescription}>
+                Your companion for responsible outdoor adventures
+              </Text>
+              <View style={styles.versionRow}>
+                <Text style={styles.versionLabel}>Version</Text>
+                <Text style={styles.versionValue}>1.0.0</Text>
+              </View>
+              <View style={styles.versionRow}>
+                <Text style={styles.versionLabel}>Build</Text>
+                <Text style={styles.versionValue}>2025.1.28</Text>
+              </View>
+            </View>
+          </SettingsCard>
+        </SettingsSection>
+
+        <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  backText: {
-    fontSize: 16,
-    color: colors.primary,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  section: {
-    marginTop: 32,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 16,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 20,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  selectedOption: {
-    backgroundColor: colors.primaryLight,
-    borderColor: colors.primary,
-  },
-  optionContent: {
-    flex: 1,
-  },
-  optionLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  selectedOptionLabel: {
-    color: colors.primary,
-  },
-  optionDescription: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  selectedOptionDescription: {
-    color: colors.primary,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectedRadioButton: {
-    borderColor: colors.primary,
-  },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.primary,
-  },
-  version: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 8,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      gap: 16,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+    },
+    aboutContent: {
+      gap: 12,
+    },
+    aboutDescription: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+    versionRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    versionLabel: {
+      fontSize: 14,
+      color: colors.text,
+      fontWeight: '500',
+    },
+    versionValue: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    bottomSpacing: {
+      height: 40,
+    },
+  });
