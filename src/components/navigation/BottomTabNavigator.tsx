@@ -20,7 +20,6 @@ const tabs: Array<{
   { key: 'log', title: 'Log Action', icon: 'add-circle', iconFamily: 'Ionicons' },
   { key: 'trips', title: 'Trips', icon: 'map', iconFamily: 'Ionicons' },
   { key: 'profile', title: 'Profile', icon: 'person', iconFamily: 'Ionicons' },
-  { key: 'settings', title: 'Settings', icon: 'settings', iconFamily: 'MaterialIcons' },
 ];
 
 export const BottomTabNavigator: React.FC<BottomTabNavigatorProps> = ({

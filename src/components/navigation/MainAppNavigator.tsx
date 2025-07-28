@@ -6,7 +6,7 @@ import { MainTabScreen } from '../../types/navigation';
 import { BottomTabNavigator } from './BottomTabNavigator';
 import DashboardScreen from '../../screens/DashboardScreen';
 import LogActionScreen from '../../screens/LogActionScreen';
-import SettingsScreen from '../../screens/SettingsScreen';
+import ProfileScreen from '../../screens/ProfileScreen';
 
 interface MainAppNavigatorProps {
   onOpenSettings: () => void;
@@ -29,8 +29,8 @@ export const MainAppNavigator: React.FC<MainAppNavigatorProps> = ({
         return <DashboardScreen onStartTrip={handleStartTrip} />;
       case 'log':
         return <LogActionScreen onActionLogged={() => setActiveTab('dashboard')} />;
-      case 'settings':
-        return <SettingsScreen onBack={onOpenSettings} />;
+      case 'profile':
+        return <ProfileScreen />;
       default:
         return <DashboardScreen onStartTrip={handleStartTrip} />;
     }
