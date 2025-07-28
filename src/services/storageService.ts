@@ -181,6 +181,40 @@ class StorageService {
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays} days ago`;
   };
+
+  async clearAllData(): Promise<void> {
+    try {
+      const keysToRemove = [
+        this.ECO_ACTIONS_KEY,
+        this.USER_STATS_KEY,
+        'weightUnit',
+        'carbonUnit',
+        'themeMode',
+      ];
+      
+      console.log('Clearing keys:', keysToRemove);
+      
+      await AsyncStorage.multiRemove(keysToRemove);
+      
+      console.log('All EcoTrack data cleared successfully');
+    } catch (error) {
+      console.error('Error clearing all data:', error);
+      throw new Error('Failed to clear data');
+    }
+  }
+
+  async resetToDefaults(): Promise<void> {
+    try {
+      await this.clearAllData();
+      
+      await this.updateUserStats([]);
+      
+      console.log('App reset to defaults successfully');
+    } catch (error) {
+      console.error('Error resetting to defaults:', error);
+      throw new Error('Failed to reset app');
+    }
+  }
 }
 
 export const storageService = new StorageService();
