@@ -1,3 +1,5 @@
+import { useUnits } from '../contexts/UnitsContext';
+
 export type EcoActionType = 'trash_pickup' | 'recycling' | 'zero_waste_camping' | 'education';
 
 export interface EcoActionData {
@@ -29,37 +31,72 @@ export interface ActionTypeOption {
   impactUnit: string;
 }
 
-export const actionTypes: ActionTypeOption[] = [
+export const getActionTypes = (weightUnit: 'lb' | 'kg'): ActionTypeOption[] => [
   {
     id: 'trash_pickup',
     title: 'Trash Pickup',
-    description: 'Remove litter from trails and campsites',
+    description: 'Clean up litter from trails and campsites',
     icon: 'delete',
     color: '#FF6B6B',
-    impactUnit: 'lbs'
+    impactUnit: weightUnit,
   },
   {
     id: 'recycling',
     title: 'Recycling',
-    description: 'Properly sort and recycle materials',
+    description: 'Properly recycle materials',
     icon: 'recycling',
     color: '#4ECDC4',
-    impactUnit: 'lbs'
+    impactUnit: weightUnit,
   },
   {
     id: 'zero_waste_camping',
     title: 'Zero Waste Camping',
     description: 'Leave no trace camping practices',
-    icon: 'eco',
+    icon: 'nature',
     color: '#45B7D1',
-    impactUnit: 'days'
+    impactUnit: 'days',
   },
   {
     id: 'education',
     title: 'Education & Awareness',
-    description: 'Share eco-knowledge with others',
+    description: 'Teach others about environmental responsibility',
     icon: 'school',
-    color: '#A55EEA',
-    impactUnit: 'people'
-  }
+    color: '#96CEB4',
+    impactUnit: 'people',
+  },
+];
+
+export const actionTypes: ActionTypeOption[] = [
+  {
+    id: 'trash_pickup',
+    title: 'Trash Pickup',
+    description: 'Clean up litter from trails and campsites',
+    icon: 'delete',
+    color: '#FF6B6B',
+    impactUnit: 'lbs',
+  },
+  {
+    id: 'recycling',
+    title: 'Recycling',
+    description: 'Properly recycle materials',
+    icon: 'recycling',
+    color: '#4ECDC4',
+    impactUnit: 'lbs',
+  },
+  {
+    id: 'zero_waste_camping',
+    title: 'Zero Waste Camping',
+    description: 'Leave no trace camping practices',
+    icon: 'nature',
+    color: '#45B7D1',
+    impactUnit: 'days',
+  },
+  {
+    id: 'education',
+    title: 'Education & Awareness',
+    description: 'Teach others about environmental responsibility',
+    icon: 'school',
+    color: '#96CEB4',
+    impactUnit: 'people',
+  },
 ];
