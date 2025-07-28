@@ -4,7 +4,7 @@ import { showAlert, showSuccessAlert } from '../utils/alertUtils';
 import { validateEcoActionForm } from '../utils/validationUtils';
 import { createEcoActionData } from '../utils/dataFactory';
 import { useForm } from './useForm';
-import { EcoActionType, actionTypes } from '../types';
+import { EcoActionType, ActionTypeOption } from '../types';
 
 interface FormState {
   selectedAction: EcoActionType | null;
@@ -22,7 +22,7 @@ const INITIAL_FORM_STATE: FormState = {
   isLogging: false,
 };
 
-export const useActionForm = (onActionLogged: () => void) => {
+export const useActionForm = (onActionLogged: () => void, actionTypes: ActionTypeOption[]) => {
   const { formState, updateField, resetForm } = useForm<FormState>(INITIAL_FORM_STATE);
 
   const selectedActionType = actionTypes.find(action => action.id === formState.selectedAction);
