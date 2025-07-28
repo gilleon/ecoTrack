@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { actionTypes } from '../types';
+import { useUnits } from '../contexts/UnitsContext';
+import { getActionTypes } from '../types';
 import { useActionForm } from '../hooks/useActionForm';
 import { ScreenHeader } from '../components/common/ScreenHeader';
 import { ActionCard } from '../components/forms/ActionCard';
@@ -15,14 +16,17 @@ interface LogActionScreenProps {
 
 export default function LogActionScreen({ onActionLogged }: LogActionScreenProps) {
   const { colors } = useTheme();
+  const { weightUnit } = useUnits();
   const styles = createStyles(colors);
+  
+  const actionTypes = getActionTypes(weightUnit);
   
   const {
     formState,
     updateField,
     selectedActionType,
     handleLogAction,
-  } = useActionForm(onActionLogged);
+  } = useActionForm(onActionLogged, actionTypes);
 
   const renderActionTypeSelector = () => (
     <View style={styles.section}>
