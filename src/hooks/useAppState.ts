@@ -5,14 +5,14 @@ import { AppScreen } from '../types/navigation';
 
 export const useAppState = () => {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('loading');
-  const { user, isInitializing } = useAuth();
+  const { user, isLoading, signOut } = useAuth();
 
   useEffect(() => {
     initializeApp();
-  }, [isInitializing, user]);
+  }, [isLoading, user]);
 
   const initializeApp = async () => {
-    if (isInitializing) return;
+    if (isLoading) return;
 
     try {
       const onboardingCompleted = await AsyncStorage.getItem('onboardingCompleted');
@@ -29,7 +29,7 @@ export const useAppState = () => {
       }
     } catch (error) {
       console.error('Error initializing app:', error);
-      setCurrentScreen('onboarding');
+      setCurrentScreen('login');
     }
   };
 
@@ -66,6 +66,16 @@ export const useAppState = () => {
     setCurrentScreen('main');
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setCurrentScreen('login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      throw error;
+    }
+  };
+
   return {
     currentScreen,
     completeOnboarding,
@@ -76,5 +86,6 @@ export const useAppState = () => {
     backToLogin,
     openSettings,
     goBack,
+    handleLogout,
   };
 };
