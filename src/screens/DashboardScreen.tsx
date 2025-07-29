@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { storageService } from '../services/storageService';
-import { UserStats, EcoActionData } from '../types';
+import { useUserStats } from '../hooks/useUserStats';
+import { EcoActionData } from '../types';
 import { LoadingState } from '../components/common/LoadingState';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { AdventureCard } from '../components/dashboard/AdventureCard';
@@ -15,48 +16,33 @@ interface DashboardScreenProps {
   onStartTrip: () => void;
 }
 
-const INITIAL_STATS: UserStats = {
-  totalActions: 0,
-  totalWasteCollected: 0,
-  totalCO2Offset: 0,
-  ecoScore: 0,
-  badgesEarned: 0,
-  lastActionDate: null,
-  lastUpdated: new Date().toISOString()
-};
-
 const PROGRESS_TARGETS = { maxWaste: 50, maxCO2: 100 };
 
 export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
   const { colors } = useTheme();
+  const { userStats, loading: statsLoading } = useUserStats();
   const styles = createStyles(colors);
 
-  const [userStats, setUserStats] = useState<UserStats>(INITIAL_STATS);
   const [recentActions, setRecentActions] = useState<EcoActionData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [actionsLoading, setActionsLoading] = useState(true);
 
-  const loadUserData = async () => {
+  const loadRecentActions = async () => {
     try {
-      const [stats, actions] = await Promise.all([
-        storageService.getUserStats(),
-        storageService.getRecentActions(3)
-      ]);
-      setUserStats(stats);
+      setActionsLoading(true);
+      const actions = await storageService.getRecentActions(3);
       setRecentActions(actions);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      console.error('Error loading recent actions:', error);
     } finally {
-      setLoading(false);
+      setActionsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadUserData();
-    const interval = setInterval(loadUserData, 2000);
-    return () => clearInterval(interval);
+    loadRecentActions();
   }, []);
 
-  if (loading) {
+  if (statsLoading || actionsLoading) {
     return <LoadingState message="Loading your impact..." />;
   }
 
