@@ -1,12 +1,9 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { AppScreen } from '../../types/navigation';
 import OnboardingScreen from '../../screens/OnboardingScreen';
 import LoginScreen from '../../screens/LoginScreen';
 import SignUpScreen from '../../screens/SignUpScreen';
-import SettingsScreen from '../../screens/SettingsScreen';
 import { MainAppNavigator } from './MainAppNavigator';
-import { useTheme } from '../../contexts/ThemeContext';
+import { AppScreen } from '../../types/navigation';
 
 interface AppNavigatorProps {
   currentScreen: AppScreen;
@@ -18,6 +15,7 @@ interface AppNavigatorProps {
   onBackToLogin: () => void;
   onOpenSettings: () => void;
   onGoBack: () => void;
+  onLogout: () => Promise<void>;
 }
 
 export const AppNavigator: React.FC<AppNavigatorProps> = ({
@@ -30,49 +28,49 @@ export const AppNavigator: React.FC<AppNavigatorProps> = ({
   onBackToLogin,
   onOpenSettings,
   onGoBack,
+  onLogout,
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  switch (currentScreen) {
+    case 'loading':
+      return null;
 
-  const renderScreen = () => {
-    switch (currentScreen) {
-      case 'onboarding':
-        return <OnboardingScreen onComplete={onOnboardingComplete} />;
-      case 'login':
-        return (
-          <LoginScreen
-            onLogin={onLogin}
-            onDemoMode={onDemoMode}
-            onSignUp={onSignUp}
-          />
-        );
-      case 'signup':
-        return (
-          <SignUpScreen
-            onSignUp={onSignUpComplete}
-            onBackToLogin={onBackToLogin}
-          />
-        );
-      case 'main':
-        return <MainAppNavigator onOpenSettings={onOpenSettings} />;
-      case 'settings':
-        return <SettingsScreen onBack={onGoBack} />;
-      default:
-        return <MainAppNavigator onOpenSettings={onOpenSettings} />;
-    }
-  };
+    case 'onboarding':
+      return <OnboardingScreen onComplete={onOnboardingComplete} />;
 
-  return (
-    <View style={styles.container}>
-      {renderScreen()}
-    </View>
-  );
+    case 'login':
+      return (
+        <LoginScreen
+          onLogin={onLogin}
+          onSignUp={onSignUp}
+          onDemoMode={onDemoMode}
+        />
+      );
+
+    case 'signup':
+      return (
+        <SignUpScreen
+          onSignUp={onSignUpComplete}
+          onBackToLogin={onBackToLogin}
+        />
+      );
+
+    case 'main':
+      return (
+        <MainAppNavigator
+          onOpenSettings={onOpenSettings}
+          onLogout={onLogout}
+        />
+      );
+
+    case 'settings':
+      return (
+        <MainAppNavigator
+          onOpenSettings={onOpenSettings}
+          onLogout={onLogout}
+        />
+      );
+
+    default:
+      return <LoginScreen onLogin={onLogin} onSignUp={onSignUp} onDemoMode={onDemoMode} />;
+  }
 };
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-  });
