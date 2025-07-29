@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { EcoActionData, UserStats } from '../types';
+import { dateUtils } from '../utils/dateUtils';
 
 class StorageService {
   private readonly ECO_ACTIONS_KEY = 'eco_actions';
@@ -171,16 +172,9 @@ class StorageService {
     return 'Amazing work protecting our planet!';
   };
 
-  getLastActionText = (lastActionDate: string | null): string => {
-    if (!lastActionDate) return 'No actions yet';
-    const lastAction = new Date(lastActionDate);
-    const now = new Date();
-    const diffHours = Math.floor((now.getTime() - lastAction.getTime()) / (1000 * 60 * 60));
-    if (diffHours < 1) return 'Less than an hour ago';
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} days ago`;
-  };
+  getLastActionText(lastActionDate: string): string {
+    return dateUtils.formatLastAction(lastActionDate);
+  }
 
   async clearAllData(): Promise<void> {
     try {
