@@ -11,7 +11,12 @@ export default function RootLayout() {
       <ThemeProvider>
         <AuthProvider>
           <UnitsProvider>
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack 
+              screenOptions={{ 
+                headerShown: false,
+                contentStyle: { paddingTop: 30 }
+              }}
+            >
               <Stack.Screen name="index" />
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="(tabs)" />
@@ -20,6 +25,7 @@ export default function RootLayout() {
                 options={{
                   presentation: 'modal',
                   headerShown: false,
+                  contentStyle: { paddingTop: 20 }
                 }}
               />
             </Stack>
