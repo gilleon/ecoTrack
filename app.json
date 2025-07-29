@@ -1,33 +1,57 @@
 {
   "expo": {
-    "name": "ecoTrack",
+    "name": "EcoTrack",
     "slug": "ecotrack",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.ecotrack",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "EcoTrack needs location access to track your outdoor adventures and calculate your environmental impact during trips.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "EcoTrack uses background location to continuously track your hiking trips and outdoor activities, even when the app is not actively being used.",
+        "NSLocationAlwaysUsageDescription": "EcoTrack uses location in the background to track your complete outdoor adventures and environmental impact.",
+        "UIBackgroundModes": ["location"]
+      }
     },
     "android": {
+      "package": "com.yourcompany.ecotrack",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFFFFF"
       },
-      "edgeToEdgeEnabled": true
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "EcoTrack needs location access to track your outdoor adventures and environmental impact.",
+          "locationAlwaysPermission": "EcoTrack uses background location to continuously track your hiking trips.",
+          "locationWhenInUsePermission": "EcoTrack needs location access to track your trips.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      "expo-task-manager"
     ]
   }
 }
