@@ -1,14 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../contexts/AuthContext';
 import { AppScreen } from '../types/navigation';
 
-export const useAppState = (initialScreen: AppScreen = 'onboarding') => {
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>(initialScreen);
+export const useAppState = () => {
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>('loading');
+  const { user, isInitializing } = useAuth();
 
-  const navigateToScreen = (screen: AppScreen) => {
-    setCurrentScreen(screen);
+  useEffect(() => {
+    initializeApp();
+  }, [isInitializing, user]);
+
+  const initializeApp = async () => {
+    if (isInitializing) return;
+
+    try {
+      const onboardingCompleted = await AsyncStorage.getItem('onboardingCompleted');
+      
+      if (onboardingCompleted !== 'true') {
+        setCurrentScreen('onboarding');
+        return;
+      }
+
+      if (user) {
+        setCurrentScreen('main');
+      } else {
+        setCurrentScreen('login');
+      }
+    } catch (error) {
+      console.error('Error initializing app:', error);
+      setCurrentScreen('onboarding');
+    }
   };
 
-  const completeOnboarding = () => {
+  const completeOnboarding = async () => {
+    await AsyncStorage.setItem('onboardingCompleted', 'true');
     setCurrentScreen('login');
   };
 
@@ -37,18 +63,11 @@ export const useAppState = (initialScreen: AppScreen = 'onboarding') => {
   };
 
   const goBack = () => {
-    if (currentScreen === 'settings') {
-      setCurrentScreen('main');
-    } else if (currentScreen === 'login') {
-      setCurrentScreen('onboarding');
-    } else if (currentScreen === 'signup') {
-      setCurrentScreen('login');
-    }
+    setCurrentScreen('main');
   };
 
   return {
     currentScreen,
-    navigateToScreen,
     completeOnboarding,
     handleLogin,
     handleDemoMode,
@@ -57,10 +76,5 @@ export const useAppState = (initialScreen: AppScreen = 'onboarding') => {
     backToLogin,
     openSettings,
     goBack,
-    isOnboarding: currentScreen === 'onboarding',
-    isLogin: currentScreen === 'login',
-    isSignUp: currentScreen === 'signup',
-    isMainApp: currentScreen === 'main',
-    isSettings: currentScreen === 'settings',
   };
 };
