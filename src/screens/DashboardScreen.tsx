@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { storageService } from '../services/storageService';
 import { useUserStats } from '../hooks/useUserStats';
+import { useTrip } from '../hooks/useTrip';
 import { EcoActionData } from '../types';
 import { LoadingState } from '../components/common/LoadingState';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
@@ -11,6 +12,8 @@ import { StatsRow } from '../components/dashboard/StatsRow';
 import { ImpactSection } from '../components/dashboard/ImpactSection';
 import { RecentActions } from '../components/dashboard/RecentActions';
 import { AchievementProgress } from '../components/dashboard/AchievementProgress';
+import { TripStartModal } from '../components/trip/TripStartModal';
+import { ActiveTripCard } from '../components/trip/ActiveTripCard';
 
 interface DashboardScreenProps {
   onStartTrip: () => void;
@@ -21,10 +24,12 @@ const PROGRESS_TARGETS = { maxWaste: 50, maxCO2: 100 };
 export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
   const { colors } = useTheme();
   const { userStats, loading: statsLoading } = useUserStats();
+  const { activeTrip, startTrip, stopTrip, pauseTrip, resumeTrip } = useTrip();
   const styles = createStyles(colors);
 
   const [recentActions, setRecentActions] = useState<EcoActionData[]>([]);
   const [actionsLoading, setActionsLoading] = useState(true);
+  const [showTripModal, setShowTripModal] = useState(false);
 
   const loadRecentActions = async () => {
     try {
@@ -42,6 +47,14 @@ export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
     loadRecentActions();
   }, []);
 
+  const handleStartTrip = () => {
+    if (activeTrip) {
+      // If there's an active trip, just close any modal
+      return;
+    }
+    setShowTripModal(true);
+  };
+
   if (statsLoading || actionsLoading) {
     return <LoadingState message="Loading your impact..." />;
   }
@@ -53,10 +66,19 @@ export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
           totalActions={userStats.totalActions}
           lastActionDate={userStats.lastActionDate}
         />
+
+        {activeTrip && (
+          <ActiveTripCard
+            trip={activeTrip}
+            onStop={stopTrip}
+            onPause={pauseTrip}
+            onResume={resumeTrip}
+          />
+        )}
         
         <AdventureCard
           totalActions={userStats.totalActions}
-          onStartTrip={onStartTrip}
+          onStartTrip={handleStartTrip}
         />
 
         <StatsRow
@@ -80,6 +102,12 @@ export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      <TripStartModal
+        visible={showTripModal}
+        onClose={() => setShowTripModal(false)}
+        onStartTrip={startTrip}
+      />
     </View>
   );
 }
