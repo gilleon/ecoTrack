@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { storageService } from '../services/storageService';
-import { UserStats, EcoActionData } from '../types';
+import { useDashboardData } from '../hooks/useDashboardData';
 import { LoadingState } from '../components/common/LoadingState';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { AdventureCard } from '../components/dashboard/AdventureCard';
@@ -10,67 +9,70 @@ import { StatsRow } from '../components/dashboard/StatsRow';
 import { ImpactSection } from '../components/dashboard/ImpactSection';
 import { RecentActions } from '../components/dashboard/RecentActions';
 import { AchievementProgress } from '../components/dashboard/AchievementProgress';
-
-interface DashboardScreenProps {
-  onStartTrip: () => void;
-}
-
-const INITIAL_STATS: UserStats = {
-  totalActions: 0,
-  totalWasteCollected: 0,
-  totalCO2Offset: 0,
-  ecoScore: 0,
-  badgesEarned: 0,
-  lastActionDate: null,
-  lastUpdated: new Date().toISOString()
-};
+import { TripStartModal } from '../components/trip/TripStartModal';
+import { ActiveTripCard } from '../components/trip/ActiveTripCard';
 
 const PROGRESS_TARGETS = { maxWaste: 50, maxCO2: 100 };
 
-export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
+export default function DashboardScreen() {
   const { colors } = useTheme();
+  const {
+    userStats,
+    activeTrip,
+    recentActions,
+    isLoading,
+    refreshing,
+    handleRefresh,
+    refreshAllData,
+    startTrip,
+    stopTrip,
+    pauseTrip,
+    resumeTrip,
+  } = useDashboardData();
+
+  const [showTripModal, setShowTripModal] = useState(false);
   const styles = createStyles(colors);
 
-  const [userStats, setUserStats] = useState<UserStats>(INITIAL_STATS);
-  const [recentActions, setRecentActions] = useState<EcoActionData[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadUserData = async () => {
-    try {
-      const [stats, actions] = await Promise.all([
-        storageService.getUserStats(),
-        storageService.getRecentActions(3)
-      ]);
-      setUserStats(stats);
-      setRecentActions(actions);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleStartTrip = () => {
+    if (activeTrip) return;
+    setShowTripModal(true);
   };
 
-  useEffect(() => {
-    loadUserData();
-    const interval = setInterval(loadUserData, 2000);
-    return () => clearInterval(interval);
-  }, []);
+  const handleTripUpdate = useCallback(async () => {
+    await refreshAllData();
+  }, [refreshAllData]);
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingState message="Loading your impact..." />;
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         <DashboardHeader
           totalActions={userStats.totalActions}
           lastActionDate={userStats.lastActionDate}
         />
+
+        {activeTrip && (
+          <ActiveTripCard
+            trip={activeTrip}
+            onStop={stopTrip}
+            onPause={pauseTrip}
+            onResume={resumeTrip}
+            onTripUpdate={handleTripUpdate}
+          />
+        )}
         
         <AdventureCard
           totalActions={userStats.totalActions}
-          onStartTrip={onStartTrip}
+          onStartTrip={handleStartTrip}
         />
 
         <StatsRow
@@ -94,6 +96,12 @@ export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      <TripStartModal
+        visible={showTripModal}
+        onClose={() => setShowTripModal(false)}
+        onStartTrip={startTrip}
+      />
     </View>
   );
 }

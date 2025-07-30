@@ -5,12 +5,11 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUnits } from '../contexts/UnitsContext';
-import { storageService } from '../services/storageService';
+import { dataClearUtils } from '../utils/dataClearUtils';
 import { SettingsSection } from '../components/settings/SettingsSection';
 import { SettingsCard } from '../components/settings/SettingsCard';
 import { SettingsMenuItem } from '../components/settings/SettingsMenuItem';
@@ -29,73 +28,20 @@ export default function SettingsScreen({ onBack }: SettingsScreenProps) {
 
   const resetContextsToDefaults = () => {
     setThemeMode('light');
-
     setWeightUnit('lb');
-
     setCarbonUnit('kg');
   };
 
   const handleDataClear = () => {
-    Alert.alert(
-      'Clear All Data',
-      'This will permanently delete all your eco-actions and progress. This action cannot be undone.\n\nAre you absolutely sure you want to continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All Data',
-          style: 'destructive',
-          onPress: confirmDataClear,
-        },
-      ]
-    );
-  };
-
-  const confirmDataClear = () => {
-    Alert.alert(
-      'Final Confirmation',
-      'This is your last chance to cancel. All your eco-actions, progress, and statistics will be permanently deleted.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes, Delete Everything',
-          style: 'destructive',
-          onPress: performDataClear,
-        },
-      ]
-    );
-  };
-
-  const performDataClear = async () => {
-    setIsClearing(true);
-
-    try {
-      await storageService.clearAllData();
-
-      resetContextsToDefaults();
-
-      Alert.alert(
-        'Data Cleared Successfully',
-        'All your data has been permanently deleted. The app will now show as if you\'re starting fresh.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setIsClearing(false);
-              onBack();
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('Error clearing data:', error);
-      setIsClearing(false);
-
-      Alert.alert(
-        'Clear Data Failed',
-        'There was an error clearing your data. Please try again or contact support if the problem persists.',
-        [{ text: 'OK' }]
-      );
-    }
+    dataClearUtils.showClearDataConfirmation({
+      onStart: () => setIsClearing(true),
+      onSuccess: () => {
+        setIsClearing(false);
+        onBack();
+      },
+      onError: () => setIsClearing(false),
+      resetContexts: resetContextsToDefaults,
+    });
   };
 
   return (

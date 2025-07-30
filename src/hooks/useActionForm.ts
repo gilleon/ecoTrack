@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
 import { storageService } from '../services/storageService';
+import { tripService } from '../services/tripService';
 import { showAlert, showSuccessAlert } from '../utils/alertUtils';
 import { validateEcoActionForm } from '../utils/validationUtils';
 import { createEcoActionData } from '../utils/dataFactory';
+import { eventEmitter, EVENTS } from '../utils/eventEmitter';
 import { useForm } from './useForm';
 import { EcoActionType, ActionTypeOption } from '../types';
 
@@ -24,7 +26,6 @@ const INITIAL_FORM_STATE: FormState = {
 
 export const useActionForm = (onActionLogged: () => void, actionTypes: ActionTypeOption[]) => {
   const { formState, updateField, resetForm } = useForm<FormState>(INITIAL_FORM_STATE);
-
   const selectedActionType = actionTypes.find(action => action.id === formState.selectedAction);
 
   const handleLogAction = useCallback(async () => {
@@ -52,28 +53,33 @@ export const useActionForm = (onActionLogged: () => void, actionTypes: ActionTyp
         formState.location
       );
 
-      await storageService.saveEcoAction(actionData);
+      await storageService.saveAction(actionData);
+
+      const activeTrip = await tripService.getActiveTrip();
+      if (activeTrip) {
+        const co2Offset = actionData.co2Offset || 0;
+        await tripService.updateTripAction(actionData.impact, co2Offset);
+        eventEmitter.emit(EVENTS.TRIP_UPDATED);
+      }
+
+      eventEmitter.emit(EVENTS.ACTION_LOGGED);
       updateField('isLogging', false);
       
       showSuccessAlert(
         'Action Logged!',
-        `Your ${selectedActionType.title.toLowerCase()} action has been saved successfully.\n\nImpact: ${parseFloat(formState.impact)} ${selectedActionType.impactUnit}`,
+        `Your ${selectedActionType.title.toLowerCase()} action has been saved successfully.`,
         [
           { text: 'Log Another', onPress: resetForm },
           { text: 'View Dashboard', onPress: onActionLogged }
         ]
       );
+
     } catch (error) {
+      console.error('Error logging action:', error);
       updateField('isLogging', false);
       showAlert('Save Failed', 'Failed to save your action. Please try again.');
     }
   }, [formState, selectedActionType, updateField, resetForm, onActionLogged]);
 
-  return {
-    formState,
-    updateField,
-    resetForm,
-    selectedActionType,
-    handleLogAction,
-  };
+  return { formState, updateField, resetForm, selectedActionType, handleLogAction };
 };

@@ -59,6 +59,10 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
     }
   };
 
+  const handleSkip = () => {
+    onComplete();
+  };
+
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [
@@ -105,7 +109,7 @@ export default function OnboardingScreen({ onComplete }: OnboardingScreenProps) 
 
         <View style={styles.navigationContainer}>
           <OnboardingButton
-            onPress={onComplete}
+            onPress={handleSkip}
             title="Skip"
             variant="secondary"
           />
