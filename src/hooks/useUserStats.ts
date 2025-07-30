@@ -1,44 +1,64 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { storageService } from '../services/storageService';
-import { UserStats } from '../types';
 
-const INITIAL_STATS: UserStats = {
+interface UserStats {
+  totalActions: number;
+  ecoScore: number;
+  badgesEarned: number;
+  totalWasteCollected: number;
+  totalCO2Offset: number;
+  lastActionDate: string | null;
+}
+
+const DEFAULT_STATS: UserStats = {
   totalActions: 0,
-  totalWasteCollected: 0,
-  totalCO2Offset: 0,
   ecoScore: 0,
   badgesEarned: 0,
+  totalWasteCollected: 0,
+  totalCO2Offset: 0,
   lastActionDate: null,
-  lastUpdated: new Date().toISOString()
 };
 
 export const useUserStats = () => {
-  const [userStats, setUserStats] = useState<UserStats>(INITIAL_STATS);
+  const [userStats, setUserStats] = useState<UserStats>(DEFAULT_STATS);
   const [loading, setLoading] = useState(true);
 
-  const loadUserStats = async () => {
+  const loadUserStats = useCallback(async () => {
     try {
       setLoading(true);
-      const stats = await storageService.getUserStats();
-      setUserStats(stats);
+      const recentActions = await storageService.getRecentActions(1000);
+      
+      if (!Array.isArray(recentActions) || recentActions.length === 0) {
+        setUserStats(DEFAULT_STATS);
+        return;
+      }
+      
+      const totalActions = recentActions.length;
+      const totalCO2Offset = recentActions.reduce((total, action) => total + (action?.co2Offset || 0), 0);
+      const totalWasteCollected = recentActions.reduce((total, action) => total + (action?.impact || 0), 0);
+
+      setUserStats({
+        totalActions,
+        ecoScore: Math.round(totalCO2Offset * 10),
+        badgesEarned: Math.floor(totalActions / 5),
+        totalWasteCollected,
+        totalCO2Offset,
+        lastActionDate: recentActions[0]?.timestamp || null,
+      });
     } catch (error) {
-      console.error('Error loading user stats:', error);
+      setUserStats(DEFAULT_STATS);
     } finally {
       setLoading(false);
     }
-  };
-
-  const refreshStats = () => {
-    loadUserStats();
-  };
+  }, []);
 
   useEffect(() => {
     loadUserStats();
-  }, []);
+  }, [loadUserStats]);
 
-  return {
-    userStats,
-    loading,
-    refreshStats,
+  return { 
+    userStats, 
+    loading, 
+    refreshStats: loadUserStats 
   };
 };
