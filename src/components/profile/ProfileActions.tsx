@@ -46,7 +46,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({ onLogout }) => {
   return (
     <>
       <SettingsSection title="Account">
-        <SettingsMenuItem
+        {/* <SettingsMenuItem
           icon="person"
           title="Edit Profile"
           subtitle="Update your information"
@@ -57,7 +57,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({ onLogout }) => {
           title="Privacy"
           subtitle="Control your data and privacy"
           onPress={() => console.log('Privacy')}
-        />
+        /> */}
         <SettingsMenuItem
           icon="logout"
           title="Logout"
@@ -73,7 +73,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({ onLogout }) => {
           subtitle="App preferences and configuration"
           onPress={handleOpenSettings}
         />
-        <SettingsMenuItem
+        {/* <SettingsMenuItem
           icon="help"
           title="Help & Support"
           subtitle="Get help with using EcoTrack"
@@ -84,7 +84,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({ onLogout }) => {
           title="Rate App"
           subtitle="Share your feedback on the app store"
           onPress={() => console.log('Rate app')}
-        />
+        /> */}
       </SettingsSection>
     </>
   );
