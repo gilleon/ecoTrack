@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../src/contexts/ThemeContext';
 
 export default function TabLayout() {
@@ -8,18 +8,13 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          borderTopWidth: 1,
         },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-        },
+        headerShown: false,
       }}
     >
       <Tabs.Screen
@@ -36,7 +31,7 @@ export default function TabLayout() {
         options={{
           title: 'Log Action',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle" size={size} color={color} />
+            <MaterialIcons name="add-circle" size={size} color={color} />
           ),
         }}
       />
@@ -45,7 +40,7 @@ export default function TabLayout() {
         options={{
           title: 'Trips',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="map" size={size} color={color} />
+            <MaterialIcons name="map" size={size} color={color} />
           ),
         }}
       />
@@ -54,7 +49,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+            <MaterialIcons name="person" size={size} color={color} />
           ),
         }}
       />
