@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Modal,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Alert,
   Linking,
 } from 'react-native';
@@ -76,9 +76,9 @@ export const TripStartModal: React.FC<TripStartModalProps> = ({
           <View style={styles.header}>
             <MaterialIcons name="map" size={24} color={colors.primary} />
             <Text style={styles.title}>Start New Trip</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Pressable onPress={onClose} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color={colors.textSecondary} />
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           <View style={styles.content}>
@@ -101,19 +101,24 @@ export const TripStartModal: React.FC<TripStartModalProps> = ({
             </View>
 
             <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button, 
+                  styles.cancelButton,
+                  pressed && styles.pressedButton
+                ]}
                 onPress={onClose}
                 disabled={loading}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity
-                style={[
+              <Pressable
+                style={({ pressed }) => [
                   styles.button, 
                   styles.startButton,
-                  (loading || !tripName.trim()) && styles.disabledButton
+                  (loading || !tripName.trim()) && styles.disabledButton,
+                  pressed && !loading && tripName.trim() && styles.pressedButton
                 ]}
                 onPress={handleStartTrip}
                 disabled={loading || !tripName.trim()}
@@ -126,7 +131,7 @@ export const TripStartModal: React.FC<TripStartModalProps> = ({
                 <Text style={styles.startButtonText}>
                   {loading ? 'Starting...' : 'Start Trip'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -235,6 +240,10 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  pressedButton: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
   },
   startButtonText: {
     fontSize: 16,
