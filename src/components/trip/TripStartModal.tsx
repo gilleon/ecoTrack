@@ -18,7 +18,6 @@ interface TripStartModalProps {
   onStartTrip: (name: string) => Promise<{ 
     success: boolean; 
     error?: string; 
-    warning?: string;
     tripId?: string;
   }>;
 }
@@ -46,31 +45,8 @@ export const TripStartModal: React.FC<TripStartModalProps> = ({
       if (result.success) {
         setTripName('');
         onClose();
-        
-        if (result.warning) {
-          Alert.alert(
-            'Trip Started with Warning',
-            result.warning,
-            [
-              { 
-                text: 'Open Settings', 
-                onPress: () => Linking.openSettings() 
-              },
-              { 
-                text: 'Continue Anyway', 
-                style: 'default' 
-              }
-            ]
-          );
-        } else {
-          Alert.alert(
-            'Trip Started!',
-            'Your adventure is now being tracked. Have a great time!',
-            [{ text: 'OK' }]
-          );
-        }
+        Alert.alert('Trip Started!', 'Your adventure is now being tracked. Have a great time!');
       } else {
-        // Handle specific error cases
         const isPermissionError = result.error?.toLowerCase().includes('permission');
         
         if (isPermissionError) {
@@ -79,53 +55,22 @@ export const TripStartModal: React.FC<TripStartModalProps> = ({
             result.error || 'Location access is needed to track your trip.',
             [
               { text: 'Cancel', style: 'cancel' },
-              { 
-                text: 'Open Settings', 
-                onPress: () => Linking.openSettings() 
-              }
+              { text: 'Open Settings', onPress: () => Linking.openSettings() }
             ]
           );
         } else {
-          Alert.alert(
-            'Failed to Start Trip',
-            result.error || 'Please check your location settings and try again.',
-            [{ text: 'OK' }]
-          );
+          Alert.alert('Failed to Start Trip', result.error || 'Please try again.');
         }
       }
     } catch (error) {
-      console.error('Trip start error:', error);
-      Alert.alert(
-        'Error',
-        'An unexpected error occurred. Please try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenSettings = () => {
-    Alert.alert(
-      'Enable Location Access',
-      'To track your trips, please:\n\n1. Open Settings\n2. Find EcoTrack\n3. Enable Location access\n4. Choose "While Using App" or "Always"',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Open Settings', 
-          onPress: () => Linking.openSettings() 
-        }
-      ]
-    );
-  };
-
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.header}>
@@ -150,15 +95,9 @@ export const TripStartModal: React.FC<TripStartModalProps> = ({
 
             <View style={styles.infoBox}>
               <MaterialIcons name="info" size={20} color={colors.primary} />
-              <View style={styles.infoContent}>
-                <Text style={styles.infoText}>
-                  GPS tracking will record your route and help calculate your environmental impact.
-                </Text>
-                <TouchableOpacity onPress={handleOpenSettings} style={styles.settingsLink}>
-                  <MaterialIcons name="settings" size={16} color={colors.primary} />
-                  <Text style={styles.settingsText}>Location Settings</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.infoText}>
+                GPS tracking will record your route and help calculate your environmental impact.
+              </Text>
             </View>
 
             <View style={styles.buttonRow}>
@@ -255,31 +194,18 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   infoBox: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     backgroundColor: colors.background,
     padding: 12,
     borderRadius: 8,
     marginBottom: 20,
     gap: 8,
   },
-  infoContent: {
-    flex: 1,
-    gap: 8,
-  },
   infoText: {
+    flex: 1,
     fontSize: 14,
     color: colors.textSecondary,
     lineHeight: 20,
-  },
-  settingsLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  settingsText: {
-    fontSize: 12,
-    color: colors.primary,
-    fontWeight: '500',
   },
   buttonRow: {
     flexDirection: 'row',
