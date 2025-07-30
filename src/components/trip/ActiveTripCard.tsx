@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { DashboardCard } from '../ui/DashboardCard';
@@ -11,6 +11,7 @@ interface ActiveTripCardProps {
   onStop: () => Promise<{ success: boolean; error?: string }>;
   onPause: () => Promise<{ success: boolean; error?: string }>;
   onResume: () => Promise<{ success: boolean; error?: string }>;
+  onTripUpdate?: () => void;
 }
 
 export const ActiveTripCard: React.FC<ActiveTripCardProps> = ({
@@ -18,21 +19,58 @@ export const ActiveTripCard: React.FC<ActiveTripCardProps> = ({
   onStop,
   onPause,
   onResume,
+  onTripUpdate,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const [currentTrip, setCurrentTrip] = useState(trip);
+  const [duration, setDuration] = useState(0);
 
-  const formatDuration = () => {
-    const now = new Date().getTime();
-    const start = new Date(trip.startTime).getTime();
-    const duration = now - start;
-    return tripService.formatDuration(duration);
-  };
+  // Update current trip when prop changes
+  useEffect(() => {
+    setCurrentTrip(trip);
+  }, [trip]);
+
+  // Update duration every second
+  useEffect(() => {
+    const updateDuration = () => {
+      const now = new Date().getTime();
+      const start = new Date(currentTrip.startTime).getTime();
+      setDuration(now - start);
+    };
+
+    updateDuration(); // Initial update
+    const interval = setInterval(updateDuration, 1000);
+    return () => clearInterval(interval);
+  }, [currentTrip.startTime]);
+
+  // Refresh trip data from storage periodically
+  const refreshTripData = useCallback(async () => {
+    try {
+      const activeTrip = await tripService.getActiveTrip();
+      if (activeTrip && activeTrip.id === currentTrip.id) {
+        setCurrentTrip(activeTrip);
+        console.log('Trip refreshed:', {
+          actions: activeTrip.actionsLogged,
+          waste: activeTrip.wasteCollected,
+          co2: activeTrip.co2Offset
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing trip data:', error);
+    }
+  }, [currentTrip.id]);
+
+  // Set up periodic refresh
+  useEffect(() => {
+    const interval = setInterval(refreshTripData, 10000); // Every 10 seconds
+    return () => clearInterval(interval);
+  }, [refreshTripData]);
 
   const handleStop = () => {
     Alert.alert(
       'End Trip',
-      'Are you sure you want to end this trip? This action cannot be undone.',
+      'Are you sure you want to end this trip?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -42,6 +80,7 @@ export const ActiveTripCard: React.FC<ActiveTripCardProps> = ({
             const result = await onStop();
             if (result.success) {
               Alert.alert('Trip Ended', 'Your trip has been saved successfully!');
+              onTripUpdate?.();
             } else {
               Alert.alert('Error', result.error || 'Failed to end trip');
             }
@@ -52,16 +91,15 @@ export const ActiveTripCard: React.FC<ActiveTripCardProps> = ({
   };
 
   const handlePauseResume = async () => {
-    if (trip.status === 'active') {
-      const result = await onPause();
-      if (!result.success) {
-        Alert.alert('Error', result.error || 'Failed to pause trip');
-      }
+    const result = currentTrip.status === 'active' 
+      ? await onPause() 
+      : await onResume();
+    
+    if (!result.success) {
+      Alert.alert('Error', result.error || 'Operation failed');
     } else {
-      const result = await onResume();
-      if (!result.success) {
-        Alert.alert('Error', result.error || 'Failed to resume trip');
-      }
+      await refreshTripData();
+      onTripUpdate?.();
     }
   };
 
@@ -76,57 +114,75 @@ export const ActiveTripCard: React.FC<ActiveTripCardProps> = ({
           <View style={styles.statusBadge}>
             <View style={[
               styles.statusDot, 
-              { backgroundColor: trip.status === 'active' ? '#4CAF50' : '#FF9800' }
+              { backgroundColor: currentTrip.status === 'active' ? '#4CAF50' : '#FF9800' }
             ]} />
             <Text style={styles.statusText}>
-              {trip.status === 'active' ? 'Recording' : 'Paused'}
+              {currentTrip.status === 'active' ? 'Recording' : 'Paused'}
             </Text>
           </View>
-          <Text style={styles.tripName}>{trip.name}</Text>
+          <Text style={styles.tripName}>{currentTrip.name}</Text>
         </View>
 
         <View style={styles.statsRow}>
           <View style={styles.stat}>
             <MaterialIcons name="schedule" size={20} color={colors.primary} />
             <Text style={styles.statLabel}>Duration</Text>
-            <Text style={styles.statValue}>{formatDuration()}</Text>
+            <Text style={styles.statValue}>{tripService.formatDuration(duration)}</Text>
           </View>
           
           <View style={styles.stat}>
             <MaterialIcons name="eco" size={20} color={colors.primary} />
             <Text style={styles.statLabel}>Actions</Text>
-            <Text style={styles.statValue}>{trip.actionsLogged}</Text>
+            <Text style={styles.statValue}>{currentTrip.actionsLogged}</Text>
           </View>
           
           <View style={styles.stat}>
             <MaterialIcons name="delete" size={20} color={colors.primary} />
             <Text style={styles.statLabel}>Waste</Text>
-            <Text style={styles.statValue}>{trip.wasteCollected.toFixed(1)}kg</Text>
+            <Text style={styles.statValue}>{currentTrip.wasteCollected.toFixed(1)}kg</Text>
           </View>
         </View>
 
+        {/* Add CO2 offset if it's greater than 0 */}
+        {currentTrip.co2Offset > 0 && (
+          <View style={styles.impactRow}>
+            <MaterialIcons name="eco" size={16} color={colors.primary} />
+            <Text style={styles.impactText}>
+              {currentTrip.co2Offset.toFixed(1)}kg CO₂ offset
+            </Text>
+          </View>
+        )}
+
         <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.button, styles.pauseButton]}
+          <Pressable
+            style={({ pressed }) => [
+              styles.button, 
+              styles.pauseButton,
+              pressed && styles.pressedButton
+            ]}
             onPress={handlePauseResume}
           >
             <MaterialIcons 
-              name={trip.status === 'active' ? 'pause' : 'play-arrow'} 
+              name={currentTrip.status === 'active' ? 'pause' : 'play-arrow'} 
               size={20} 
               color={colors.primary} 
             />
             <Text style={[styles.buttonText, { color: colors.primary }]}>
-              {trip.status === 'active' ? 'Pause' : 'Resume'}
+              {currentTrip.status === 'active' ? 'Pause' : 'Resume'}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity
-            style={[styles.button, styles.stopButton]}
+          <Pressable
+            style={({ pressed }) => [
+              styles.button, 
+              styles.stopButton,
+              pressed && styles.pressedButton
+            ]}
             onPress={handleStop}
           >
             <MaterialIcons name="stop" size={20} color="white" />
             <Text style={styles.stopButtonText}>End Trip</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </DashboardCard>
@@ -178,6 +234,20 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
   },
+  impactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 8,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+  },
+  impactText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '500',
+  },
   buttonRow: {
     flexDirection: 'row',
     gap: 12,
@@ -207,5 +277,9 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: 'white',
+  },
+  pressedButton: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
   },
 });
