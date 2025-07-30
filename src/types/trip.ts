@@ -13,20 +13,12 @@ export interface TripData {
   endTime?: string;
   status: 'active' | 'paused' | 'completed';
   locations: TripLocation[];
-  distance: number; // in meters
-  duration: number; // in milliseconds
+  distance: number;
+  duration: number;
   actionsLogged: number;
   wasteCollected: number;
   co2Offset: number;
   startLocation?: TripLocation;
   endLocation?: TripLocation;
   createdAt: string;
-}
-
-export interface TripStats {
-  totalTrips: number;
-  totalDistance: number;
-  totalDuration: number;
-  averageActionsPerTrip: number;
-  favoriteLocation?: string;
 }
