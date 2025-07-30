@@ -1,6 +1,5 @@
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 import { TripData, TripLocation } from '../types/trip';
 
 const TRIPS_STORAGE_KEY = 'ecotrack_trips';
@@ -10,128 +9,46 @@ class TripService {
   private activeTripId: string | null = null;
   private locationWatcher: Location.LocationSubscription | null = null;
 
-  async checkLocationPermissions(): Promise<{ 
-    foreground: boolean; 
-    background: boolean; 
-    message: string 
-  }> {
+  async requestPermissions(): Promise<{ success: boolean; message: string; canProceed: boolean }> {
     try {
-      const foregroundStatus = await Location.getForegroundPermissionsAsync();
-      const backgroundStatus = await Location.getBackgroundPermissionsAsync();
-
-      return {
-        foreground: foregroundStatus.status === 'granted',
-        background: backgroundStatus.status === 'granted',
-        message: this.getPermissionMessage(foregroundStatus.status, backgroundStatus.status)
-      };
-    } catch (error) {
-      return {
-        foreground: false,
-        background: false,
-        message: 'Unable to check location permissions'
-      };
-    }
-  }
-
-  private getPermissionMessage(foreground: string, background: string): string {
-    if (foreground !== 'granted') {
-      return 'Location access is required to track your trip. Please allow location access in settings.';
-    }
-    if (background !== 'granted') {
-      return 'Foreground location tracking enabled. Keep the app open for best results.';
-    }
-    return 'All permissions granted';
-  }
-
-  async requestPermissions(): Promise<{ 
-    success: boolean; 
-    message: string;
-    canProceed: boolean;
-  }> {
-    try {
-      let foregroundStatus;
-      try {
-        const result = await Location.requestForegroundPermissionsAsync();
-        foregroundStatus = result.status;
-      } catch (permissionError) {
-        if (
-          typeof permissionError === 'object' &&
-          permissionError !== null &&
-          'message' in permissionError &&
-          typeof (permissionError as any).message === 'string' &&
-          (
-            (permissionError as any).message.includes('NSLocation') ||
-            (permissionError as any).message.includes('Info.plist')
-          )
-        ) {
-          return {
-            success: false,
-            message: 'App configuration issue. Please restart the development server with: npx expo start --clear',
-            canProceed: false
-          };
-        }
-        
-        return {
-          success: false,
-          message: 'Failed to request location permission. Please check your device settings.',
-          canProceed: false
-        };
-      }
+      const result = await Location.requestForegroundPermissionsAsync();
       
-      if (foregroundStatus !== 'granted') {
+      if (result.status !== 'granted') {
         return {
           success: false,
-          message: 'Location permission is required to track your trip. Please enable location access in your device settings.',
+          message: 'Location permission is required to track your trip.',
           canProceed: false
         };
       }
 
       return {
         success: true,
-        message: 'Location permission granted. Trip tracking enabled.',
+        message: 'Location permission granted.',
         canProceed: true
       };
     } catch (error) {
       return {
         success: false,
-        message: 'Failed to request permissions. Please try again.',
+        message: 'Failed to request permissions.',
         canProceed: false
       };
     }
   }
 
-  async startTrip(name: string): Promise<{ 
-    success: boolean; 
-    tripId?: string; 
-    error?: string;
-    warning?: string;
-  }> {
+  async startTrip(name: string): Promise<{ success: boolean; tripId?: string; error?: string }> {
     try {
       const permissionResult = await this.requestPermissions();
-      
       if (!permissionResult.canProceed) {
-        return { 
-          success: false, 
-          error: permissionResult.message 
-        };
+        return { success: false, error: permissionResult.message };
       }
 
-      let location;
-      try {
-        location = await this.getCurrentLocationWithFallback();
-      } catch (locationError) {
-        return { 
-          success: false, 
-          error: 'Unable to get your current location. Please check if location services are enabled and try again.' 
-        };
-      }
-
+      const location = await this.getCurrentLocation();
       const tripId = `trip_${Date.now()}`;
       const startLocation: TripLocation = {
         latitude: location.latitude,
         longitude: location.longitude,
-        altitude: location.altitude || undefined,
-        accuracy: location.accuracy || undefined,
+        altitude: location.altitude,
+        accuracy: location.accuracy,
         timestamp: Date.now(),
       };
 
@@ -153,36 +70,24 @@ class TripService {
       await this.saveTrip(newTrip);
       await AsyncStorage.setItem(ACTIVE_TRIP_KEY, tripId);
       this.activeTripId = tripId;
-      await this.startForegroundLocationTracking();
+      await this.startLocationTracking();
 
-      return { 
-        success: true, 
-        tripId,
-        warning: 'Keep the app open for continuous location tracking.'
-      };
+      return { success: true, tripId };
     } catch (error) {
-      return { 
-        success: false, 
-        error: 'Failed to start trip. Please try again.' 
-      };
+      return { success: false, error: 'Failed to start trip.' };
     }
   }
 
-  private async getCurrentLocationWithFallback(): Promise<{
+  private async getCurrentLocation(): Promise<{
     latitude: number;
     longitude: number;
     altitude?: number;
     accuracy?: number;
   }> {
     try {
-      const location = await Promise.race([
-        Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Location timeout')), 12000)
-        )
-      ]) as Location.LocationObject;
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
 
       return {
         latitude: location.coords.latitude,
@@ -191,33 +96,14 @@ class TripService {
         accuracy: location.coords.accuracy || undefined,
       };
     } catch (error) {
-      try {
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-
-        return {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          altitude: location.coords.altitude || undefined,
-          accuracy: location.coords.accuracy || undefined,
-        };
-      } catch (fallbackError) {
-        if (__DEV__) {
-          return {
-            latitude: 37.7749,
-            longitude: -122.4194,
-            altitude: 100,
-            accuracy: 10,
-          };
-        }
-        
-        throw fallbackError;
+      if (__DEV__) {
+        return { latitude: 37.7749, longitude: -122.4194, altitude: 100, accuracy: 10 };
       }
+      throw error;
     }
   }
 
-  private async startForegroundLocationTracking(): Promise<void> {
+  private async startLocationTracking(): Promise<void> {
     try {
       if (this.locationWatcher) {
         this.locationWatcher.remove();
@@ -229,12 +115,10 @@ class TripService {
           timeInterval: 30000,
           distanceInterval: 10,
         },
-        (location) => {
-          this.handleLocationUpdate(location);
-        }
+        (location) => this.handleLocationUpdate(location)
       );
     } catch (error) {
-      console.error('Error starting foreground location tracking:', error);
+      console.error('Error starting location tracking:', error);
     }
   }
 
@@ -265,14 +149,10 @@ class TripService {
     }
   }
 
-  private async stopForegroundLocationTracking(): Promise<void> {
-    try {
-      if (this.locationWatcher) {
-        this.locationWatcher.remove();
-        this.locationWatcher = null;
-      }
-    } catch (error) {
-      console.error('Error stopping foreground location tracking:', error);
+  private async stopLocationTracking(): Promise<void> {
+    if (this.locationWatcher) {
+      this.locationWatcher.remove();
+      this.locationWatcher = null;
     }
   }
 
@@ -289,19 +169,16 @@ class TripService {
 
       let endLocation: TripLocation;
       try {
-        const location = await this.getCurrentLocationWithFallback();
+        const location = await this.getCurrentLocation();
         endLocation = {
           latitude: location.latitude,
           longitude: location.longitude,
-          altitude: location.altitude || undefined,
-          accuracy: location.accuracy || undefined,
+          altitude: location.altitude,
+          accuracy: location.accuracy,
           timestamp: Date.now(),
         };
       } catch (error) {
-        endLocation = {
-          ...trip.startLocation!,
-          timestamp: Date.now(),
-        };
+        endLocation = { ...trip.startLocation!, timestamp: Date.now() };
       }
 
       const endTime = new Date().toISOString();
@@ -320,7 +197,7 @@ class TripService {
       await this.saveTrip(updatedTrip);
       await AsyncStorage.removeItem(ACTIVE_TRIP_KEY);
       this.activeTripId = null;
-      await this.stopForegroundLocationTracking();
+      await this.stopLocationTracking();
 
       return { success: true, trip: updatedTrip };
     } catch (error) {
@@ -339,13 +216,9 @@ class TripService {
         return { success: false, error: 'Trip not found' };
       }
 
-      const updatedTrip: TripData = {
-        ...trip,
-        status: 'paused',
-      };
-
+      const updatedTrip: TripData = { ...trip, status: 'paused' };
       await this.saveTrip(updatedTrip);
-      await this.stopForegroundLocationTracking();
+      await this.stopLocationTracking();
 
       return { success: true };
     } catch (error) {
@@ -364,13 +237,9 @@ class TripService {
         return { success: false, error: 'Trip not found' };
       }
 
-      const updatedTrip: TripData = {
-        ...trip,
-        status: 'active',
-      };
-
+      const updatedTrip: TripData = { ...trip, status: 'active' };
       await this.saveTrip(updatedTrip);
-      await this.startForegroundLocationTracking();
+      await this.startLocationTracking();
 
       return { success: true };
     } catch (error) {
@@ -420,15 +289,10 @@ class TripService {
   }
 
   async saveTrip(trip: TripData): Promise<void> {
-    try {
-      const tripsData = await AsyncStorage.getItem(TRIPS_STORAGE_KEY);
-      const trips: Record<string, TripData> = tripsData ? JSON.parse(tripsData) : {};
-
-      trips[trip.id] = trip;
-      await AsyncStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(trips));
-    } catch (error) {
-      throw error;
-    }
+    const tripsData = await AsyncStorage.getItem(TRIPS_STORAGE_KEY);
+    const trips: Record<string, TripData> = tripsData ? JSON.parse(tripsData) : {};
+    trips[trip.id] = trip;
+    await AsyncStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(trips));
   }
 
   async updateTripAction(actionWeight: number, co2Offset: number): Promise<void> {
@@ -497,7 +361,7 @@ class TripService {
       return `${hours}h ${minutes % 60}m`;
     }
     if (minutes > 0) {
-      return `${minutes}m ${seconds % 60}s`;
+      return `${minutes}m`;
     }
     return `${seconds}s`;
   }
