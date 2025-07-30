@@ -12,7 +12,6 @@ export const useTrip = () => {
       const trip = await tripService.getActiveTrip();
       setActiveTrip(trip);
     } catch (error) {
-      console.error('Error loading active trip:', error);
       setActiveTrip(null);
     }
   }, []);
@@ -23,7 +22,6 @@ export const useTrip = () => {
       const trips = await tripService.getAllTrips();
       setAllTrips(trips);
     } catch (error) {
-      console.error('Error loading trips:', error);
       setAllTrips([]);
     } finally {
       setLoading(false);
@@ -36,56 +34,38 @@ export const useTrip = () => {
   }, [loadActiveTrip, loadAllTrips]);
 
   const startTrip = async (name: string) => {
-    try {
-      const result = await tripService.startTrip(name);
-      if (result.success) {
-        await loadActiveTrip();
-      }
-      return result;
-    } catch (error) {
-      return { success: false, error: 'Failed to start trip' };
+    const result = await tripService.startTrip(name);
+    if (result.success) {
+      await loadActiveTrip();
     }
+    return result;
   };
 
   const stopTrip = async () => {
-    try {
-      const result = await tripService.stopTrip();
-      if (result.success) {
-        await Promise.all([loadActiveTrip(), loadAllTrips()]);
-      }
-      return result;
-    } catch (error) {
-      return { success: false, error: 'Failed to stop trip' };
+    const result = await tripService.stopTrip();
+    if (result.success) {
+      await Promise.all([loadActiveTrip(), loadAllTrips()]);
     }
+    return result;
   };
 
   const pauseTrip = async () => {
-    try {
-      const result = await tripService.pauseTrip();
-      if (result.success) {
-        await loadActiveTrip();
-      }
-      return result;
-    } catch (error) {
-      return { success: false, error: 'Failed to pause trip' };
+    const result = await tripService.pauseTrip();
+    if (result.success) {
+      await loadActiveTrip();
     }
+    return result;
   };
 
   const resumeTrip = async () => {
-    try {
-      const result = await tripService.resumeTrip();
-      if (result.success) {
-        await loadActiveTrip();
-      }
-      return result;
-    } catch (error) {
-      return { success: false, error: 'Failed to resume trip' };
+    const result = await tripService.resumeTrip();
+    if (result.success) {
+      await loadActiveTrip();
     }
+    return result;
   };
 
-  const refreshActiveTrip = useCallback(async () => {
-    await loadActiveTrip();
-  }, [loadActiveTrip]);
+  const refreshActiveTrip = useCallback(loadActiveTrip, [loadActiveTrip]);
 
   return {
     activeTrip,
