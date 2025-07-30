@@ -3,7 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { DashboardCard } from '../ui/DashboardCard';
-import { storageService } from '../../services/storageService';
 
 interface AchievementProgressProps {
   totalActions: number;
@@ -19,6 +18,28 @@ export const AchievementProgress: React.FC<AchievementProgressProps> = ({
 
   if (totalActions === 0) return null;
 
+  const getNextBadgeText = (actions: number, score: number): string => {
+    if (actions < 5) return `${5 - actions} more actions for "Getting Started"`;
+    if (actions < 10) return `${10 - actions} more actions for "Action Hero"`;
+    if (actions < 25) return `${25 - actions} more actions for "Eco Warrior"`;
+    if (actions < 50) return `${50 - actions} more actions for "Environmental Champion"`;
+    if (score < 100) return `${100 - score} more points for "High Impact"`;
+    if (score < 250) return `${250 - score} more points for "Eco Legend"`;
+    if (score < 500) return `${500 - score} more points for "Planet Guardian"`;
+    return 'All badges earned!';
+  };
+
+  const getNextBadgeProgress = (actions: number, score: number): number => {
+    if (actions < 5) return (actions / 5) * 100;
+    if (actions < 10) return (actions / 10) * 100;
+    if (actions < 25) return (actions / 25) * 100;
+    if (actions < 50) return (actions / 50) * 100;
+    if (score < 100) return (score / 100) * 100;
+    if (score < 250) return (score / 250) * 100;
+    if (score < 500) return (score / 500) * 100;
+    return 100;
+  };
+
   return (
     <DashboardCard title="Achievement Progress" icon="emoji-events" iconFamily="MaterialIcons">
       <View style={styles.achievementSection}>
@@ -28,7 +49,7 @@ export const AchievementProgress: React.FC<AchievementProgressProps> = ({
             <Text style={styles.achievementLabel}>Next Badge</Text>
           </View>
           <Text style={styles.achievementValue}>
-            {storageService.getNextBadgeText(totalActions, ecoScore)}
+            {getNextBadgeText(totalActions, ecoScore)}
           </Text>
         </View>
         <View style={styles.achievementProgress}>
@@ -36,7 +57,7 @@ export const AchievementProgress: React.FC<AchievementProgressProps> = ({
             style={[
               styles.achievementProgressBar,
               { 
-                width: `${storageService.getNextBadgeProgress(totalActions, ecoScore)}%`,
+                width: `${getNextBadgeProgress(totalActions, ecoScore)}%`,
                 backgroundColor: colors.primary 
               }
             ]} 
