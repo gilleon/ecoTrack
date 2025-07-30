@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { tripService } from '../services/tripService';
 import { TripData } from '../types/trip';
 
@@ -7,70 +7,85 @@ export const useTrip = () => {
   const [allTrips, setAllTrips] = useState<TripData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadActiveTrip = async () => {
+  const loadActiveTrip = useCallback(async () => {
     try {
       const trip = await tripService.getActiveTrip();
       setActiveTrip(trip);
     } catch (error) {
       console.error('Error loading active trip:', error);
+      setActiveTrip(null);
     }
-  };
+  }, []);
 
-  const loadAllTrips = async () => {
+  const loadAllTrips = useCallback(async () => {
     try {
+      setLoading(true);
       const trips = await tripService.getAllTrips();
       setAllTrips(trips);
     } catch (error) {
       console.error('Error loading trips:', error);
+      setAllTrips([]);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadActiveTrip();
+    loadAllTrips();
+  }, [loadActiveTrip, loadAllTrips]);
 
   const startTrip = async (name: string) => {
-    const result = await tripService.startTrip(name);
-    if (result.success) {
-      await loadActiveTrip();
+    try {
+      const result = await tripService.startTrip(name);
+      if (result.success) {
+        await loadActiveTrip();
+      }
+      return result;
+    } catch (error) {
+      return { success: false, error: 'Failed to start trip' };
     }
-    return result;
   };
 
   const stopTrip = async () => {
-    const result = await tripService.stopTrip();
-    if (result.success) {
-      await loadActiveTrip();
-      await loadAllTrips();
+    try {
+      const result = await tripService.stopTrip();
+      if (result.success) {
+        await Promise.all([loadActiveTrip(), loadAllTrips()]);
+      }
+      return result;
+    } catch (error) {
+      return { success: false, error: 'Failed to stop trip' };
     }
-    return result;
   };
 
   const pauseTrip = async () => {
-    const result = await tripService.pauseTrip();
-    if (result.success) {
-      await loadActiveTrip();
+    try {
+      const result = await tripService.pauseTrip();
+      if (result.success) {
+        await loadActiveTrip();
+      }
+      return result;
+    } catch (error) {
+      return { success: false, error: 'Failed to pause trip' };
     }
-    return result;
   };
 
   const resumeTrip = async () => {
-    const result = await tripService.resumeTrip();
-    if (result.success) {
-      await loadActiveTrip();
+    try {
+      const result = await tripService.resumeTrip();
+      if (result.success) {
+        await loadActiveTrip();
+      }
+      return result;
+    } catch (error) {
+      return { success: false, error: 'Failed to resume trip' };
     }
-    return result;
   };
 
-  const refreshTrips = async () => {
-    await Promise.all([loadActiveTrip(), loadAllTrips()]);
-  };
-
-  useEffect(() => {
-    const initialize = async () => {
-      setLoading(true);
-      await Promise.all([loadActiveTrip(), loadAllTrips()]);
-      setLoading(false);
-    };
-
-    initialize();
-  }, []);
+  const refreshActiveTrip = useCallback(async () => {
+    await loadActiveTrip();
+  }, [loadActiveTrip]);
 
   return {
     activeTrip,
@@ -80,6 +95,6 @@ export const useTrip = () => {
     stopTrip,
     pauseTrip,
     resumeTrip,
-    refreshTrips,
+    refreshActiveTrip,
   };
 };
