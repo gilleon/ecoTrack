@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { storageService } from '../services/storageService';
 import { useUserStats } from '../hooks/useUserStats';
 import { useTrip } from '../hooks/useTrip';
+import { eventEmitter, EVENTS } from '../utils/eventEmitter';
 import { EcoActionData } from '../types';
 import { LoadingState } from '../components/common/LoadingState';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
@@ -23,8 +24,8 @@ const PROGRESS_TARGETS = { maxWaste: 50, maxCO2: 100 };
 
 export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
   const { colors } = useTheme();
-  const { userStats, loading: statsLoading } = useUserStats();
-  const { activeTrip, startTrip, stopTrip, pauseTrip, resumeTrip } = useTrip();
+  const { userStats, loading: statsLoading, refreshStats } = useUserStats();
+  const { activeTrip, startTrip, stopTrip, pauseTrip, resumeTrip, refreshActiveTrip } = useTrip();
   const styles = createStyles(colors);
 
   const [recentActions, setRecentActions] = useState<EcoActionData[]>([]);
@@ -35,36 +36,71 @@ export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
     try {
       setActionsLoading(true);
       const actions = await storageService.getRecentActions(3);
-      setRecentActions(actions);
+      setRecentActions(Array.isArray(actions) ? actions : []);
     } catch (error) {
       console.error('Error loading recent actions:', error);
+      setRecentActions([]);
     } finally {
       setActionsLoading(false);
     }
   };
 
+  const refreshAllData = useCallback(async () => {
+    await Promise.all([refreshStats(), refreshActiveTrip(), loadRecentActions()]);
+  }, [refreshStats, refreshActiveTrip]);
+
   useEffect(() => {
     loadRecentActions();
   }, []);
 
+  useEffect(() => {
+    const unsubscribeActionLogged = eventEmitter.on(EVENTS.ACTION_LOGGED, refreshAllData);
+    const unsubscribeTripUpdated = eventEmitter.on(EVENTS.TRIP_UPDATED, refreshActiveTrip);
+
+    return () => {
+      unsubscribeActionLogged();
+      unsubscribeTripUpdated();
+    };
+  }, [refreshAllData, refreshActiveTrip]);
+
+  useEffect(() => {
+    if (!activeTrip) return;
+    const interval = setInterval(refreshActiveTrip, 10000);
+    return () => clearInterval(interval);
+  }, [activeTrip, refreshActiveTrip]);
+
+  useEffect(() => {
+    refreshAllData();
+  }, [refreshAllData]);
+
   const handleStartTrip = () => {
-    if (activeTrip) {
-      // If there's an active trip, just close any modal
-      return;
-    }
+    if (activeTrip) return;
     setShowTripModal(true);
   };
+
+  const handleTripUpdate = useCallback(async () => {
+    await refreshAllData();
+  }, [refreshAllData]);
 
   if (statsLoading || actionsLoading) {
     return <LoadingState message="Loading your impact..." />;
   }
 
+  const safeUserStats = userStats || {
+    totalActions: 0,
+    ecoScore: 0,
+    badgesEarned: 0,
+    totalWasteCollected: 0,
+    totalCO2Offset: 0,
+    lastActionDate: null,
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <DashboardHeader
-          totalActions={userStats.totalActions}
-          lastActionDate={userStats.lastActionDate}
+          totalActions={safeUserStats.totalActions}
+          lastActionDate={safeUserStats.lastActionDate}
         />
 
         {activeTrip && (
@@ -73,31 +109,32 @@ export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
             onStop={stopTrip}
             onPause={pauseTrip}
             onResume={resumeTrip}
+            onTripUpdate={handleTripUpdate}
           />
         )}
         
         <AdventureCard
-          totalActions={userStats.totalActions}
+          totalActions={safeUserStats.totalActions}
           onStartTrip={handleStartTrip}
         />
 
         <StatsRow
-          ecoScore={userStats.ecoScore}
-          badgesEarned={userStats.badgesEarned}
+          ecoScore={safeUserStats.ecoScore}
+          badgesEarned={safeUserStats.badgesEarned}
         />
 
         <ImpactSection
-          totalWasteCollected={userStats.totalWasteCollected}
-          totalCO2Offset={userStats.totalCO2Offset}
-          totalActions={userStats.totalActions}
+          totalWasteCollected={safeUserStats.totalWasteCollected}
+          totalCO2Offset={safeUserStats.totalCO2Offset}
+          totalActions={safeUserStats.totalActions}
           progressTargets={PROGRESS_TARGETS}
         />
 
         <RecentActions actions={recentActions} />
 
         <AchievementProgress
-          totalActions={userStats.totalActions}
-          ecoScore={userStats.ecoScore}
+          totalActions={safeUserStats.totalActions}
+          ecoScore={safeUserStats.ecoScore}
         />
 
         <View style={styles.bottomSpacing} />
