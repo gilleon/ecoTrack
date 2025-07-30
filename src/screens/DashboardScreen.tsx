@@ -16,13 +16,9 @@ import { AchievementProgress } from '../components/dashboard/AchievementProgress
 import { TripStartModal } from '../components/trip/TripStartModal';
 import { ActiveTripCard } from '../components/trip/ActiveTripCard';
 
-interface DashboardScreenProps {
-  onStartTrip: () => void;
-}
-
 const PROGRESS_TARGETS = { maxWaste: 50, maxCO2: 100 };
 
-export default function DashboardScreen({ onStartTrip }: DashboardScreenProps) {
+export default function DashboardScreen() {
   const { colors } = useTheme();
   const { userStats, loading: statsLoading, refreshStats } = useUserStats();
   const { activeTrip, startTrip, stopTrip, pauseTrip, resumeTrip, refreshActiveTrip } = useTrip();
