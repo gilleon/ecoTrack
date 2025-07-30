@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { storageService } from '../services/storageService';
 import { useUserStats } from '../hooks/useUserStats';
 import { useTrip } from '../hooks/useTrip';
+import { useHotReload } from '../hooks/useHotReload';
 import { eventEmitter, EVENTS } from '../utils/eventEmitter';
 import { EcoActionData } from '../types';
 import { LoadingState } from '../components/common/LoadingState';
@@ -27,8 +28,9 @@ export default function DashboardScreen() {
   const [recentActions, setRecentActions] = useState<EcoActionData[]>([]);
   const [actionsLoading, setActionsLoading] = useState(true);
   const [showTripModal, setShowTripModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadRecentActions = async () => {
+  const loadRecentActions = useCallback(async () => {
     try {
       setActionsLoading(true);
       const actions = await storageService.getRecentActions(3);
@@ -39,15 +41,29 @@ export default function DashboardScreen() {
     } finally {
       setActionsLoading(false);
     }
-  };
+  }, []);
+
+  // Use reusable hot reload hook
+  useHotReload({
+    refreshStats,
+    refreshTrips: refreshActiveTrip,
+    refreshActions: loadRecentActions,
+    debugLabel: 'DashboardScreen'
+  });
 
   const refreshAllData = useCallback(async () => {
     await Promise.all([refreshStats(), refreshActiveTrip(), loadRecentActions()]);
-  }, [refreshStats, refreshActiveTrip]);
+  }, [refreshStats, refreshActiveTrip, loadRecentActions]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshAllData();
+    setTimeout(() => setRefreshing(false), 500);
+  };
 
   useEffect(() => {
     loadRecentActions();
-  }, []);
+  }, [loadRecentActions]);
 
   useEffect(() => {
     const unsubscribeActionLogged = eventEmitter.on(EVENTS.ACTION_LOGGED, refreshAllData);
@@ -64,10 +80,6 @@ export default function DashboardScreen() {
     const interval = setInterval(refreshActiveTrip, 10000);
     return () => clearInterval(interval);
   }, [activeTrip, refreshActiveTrip]);
-
-  useEffect(() => {
-    refreshAllData();
-  }, [refreshAllData]);
 
   const handleStartTrip = () => {
     if (activeTrip) return;
@@ -93,7 +105,13 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         <DashboardHeader
           totalActions={safeUserStats.totalActions}
           lastActionDate={safeUserStats.lastActionDate}

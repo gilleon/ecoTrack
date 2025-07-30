@@ -28,6 +28,16 @@ export const useTrip = () => {
     }
   }, []);
 
+  const refreshAllData = useCallback(async () => {
+    setLoading(true);
+    try {
+      await Promise.all([loadActiveTrip(), loadAllTrips()]);
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  }, [loadActiveTrip, loadAllTrips]);
+
   useEffect(() => {
     loadActiveTrip();
     loadAllTrips();
@@ -65,8 +75,6 @@ export const useTrip = () => {
     return result;
   };
 
-  const refreshActiveTrip = useCallback(loadActiveTrip, [loadActiveTrip]);
-
   return {
     activeTrip,
     allTrips,
@@ -75,6 +83,7 @@ export const useTrip = () => {
     stopTrip,
     pauseTrip,
     resumeTrip,
-    refreshActiveTrip,
+    refreshActiveTrip: refreshAllData,
+    refreshAllData,
   };
 };

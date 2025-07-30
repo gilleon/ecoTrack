@@ -9,6 +9,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTrip } from '../hooks/useTrip';
+import { useHotReload } from '../hooks/useHotReload';
 import { TripData } from '../types/trip';
 import { tripService } from '../services/tripService';
 import { LoadingState } from '../components/common/LoadingState';
@@ -17,15 +18,21 @@ import { TripDetailsModal } from '../components/trip/TripDetailsModal';
 
 export default function TripsScreen() {
   const { colors } = useTheme();
-  const { allTrips, loading } = useTrip();
+  const { allTrips, loading, refreshActiveTrip } = useTrip();
   const [selectedTrip, setSelectedTrip] = useState<TripData | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const styles = createStyles(colors);
 
+  // Use reusable hot reload hook
+  useHotReload({
+    refreshTrips: refreshActiveTrip,
+    debugLabel: 'TripsScreen'
+  });
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Trips refresh automatically via useTrip hook
-    setTimeout(() => setRefreshing(false), 1000);
+    await refreshActiveTrip();
+    setTimeout(() => setRefreshing(false), 500);
   };
 
   const getStatsOverview = () => {

@@ -4,12 +4,18 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useUnits } from '../../contexts/UnitsContext';
 import { DashboardCard } from '../ui/DashboardCard';
 import { useUserStats } from '../../hooks/useUserStats';
+import { useHotReload } from '../../hooks/useHotReload';
 
 export const ImpactSummary: React.FC = () => {
   const { colors } = useTheme();
   const { formatWeight } = useUnits();
-  const { userStats } = useUserStats();
+  const { userStats, refreshStats } = useUserStats();
   const styles = createStyles(colors);
+
+  useHotReload({
+    refreshStats,
+    debugLabel: 'ImpactSummary'
+  });
 
   return (
     <DashboardCard title="Your Impact Summary" icon="eco" iconFamily="MaterialIcons">
