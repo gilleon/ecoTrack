@@ -1,10 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useUnits } from '../../contexts/UnitsContext';
 import { EcoActionData } from '../../types';
 import { DashboardCard } from '../ui/DashboardCard';
+import { ActionDetailModal } from '../action/ActionDetailModal';
 
 interface RecentActionsProps {
   actions: EcoActionData[];
@@ -21,8 +22,20 @@ export const RecentActions: React.FC<RecentActionsProps> = ({ actions = [] }) =>
   const { colors } = useTheme();
   const { weightUnit, convertWeight } = useUnits();
   const styles = createStyles(colors);
+  const [selectedAction, setSelectedAction] = useState<EcoActionData | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const safeActions = Array.isArray(actions) ? actions : [];
+
+  const handleActionPress = (action: EcoActionData) => {
+    setSelectedAction(action);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedAction(null);
+  };
 
   const formatDate = (timestamp: string) => {
     try {
@@ -60,7 +73,11 @@ export const RecentActions: React.FC<RecentActionsProps> = ({ actions = [] }) =>
           const config = ACTION_CONFIG[action.type] || { icon: 'eco', title: action.type };
           
           return (
-            <View key={action.id || index} style={styles.actionItem}>
+            <Pressable 
+              key={action.id || index} 
+              style={styles.actionItem}
+              onPress={() => handleActionPress(action)}
+            >
               <View style={styles.actionIcon}>
                 <MaterialIcons 
                   name={config.icon as any} 
@@ -94,10 +111,16 @@ export const RecentActions: React.FC<RecentActionsProps> = ({ actions = [] }) =>
                   )}
                 </View>
               </View>
-            </View>
+            </Pressable>
           );
         })}
       </View>
+
+      <ActionDetailModal
+        visible={showModal}
+        action={selectedAction}
+        onClose={closeModal}
+      />
     </DashboardCard>
   );
 };
