@@ -8,6 +8,7 @@ import { ScreenHeader } from '../components/common/ScreenHeader';
 import { ActionCard } from '../components/forms/ActionCard';
 import { SelectedActionHeader } from '../components/forms/SelectedActionHeader';
 import { ActionFormInput } from '../components/forms/ActionFormInput';
+import { PhotoPicker } from '../components/forms/PhotoPicker';
 import { SubmitButton } from '../components/forms/SubmitButton';
 
 interface LogActionScreenProps {
@@ -87,7 +88,7 @@ export default function LogActionScreen({ onActionLogged }: LogActionScreenProps
             onChangeText={(text) => updateField('description', text)}
             placeholder="Describe what you did..."
             multiline
-            numberOfLines={3}
+            numberOfLines={2}
             required
           />
 
@@ -105,6 +106,12 @@ export default function LogActionScreen({ onActionLogged }: LogActionScreenProps
             value={formState.location}
             onChangeText={(text) => updateField('location', text)}
             placeholder="Where did this happen?"
+          />
+
+          <PhotoPicker
+            photos={formState.photos}
+            onPhotosChange={(photos) => updateField('photos', photos)}
+            maxPhotos={3}
           />
 
           <SubmitButton
