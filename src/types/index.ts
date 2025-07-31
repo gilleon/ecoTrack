@@ -1,5 +1,3 @@
-import { useUnits } from '../contexts/UnitsContext';
-
 export type EcoActionType = 'trash_pickup' | 'recycling' | 'zero_waste_camping' | 'education';
 
 export interface EcoActionData {
@@ -11,6 +9,7 @@ export interface EcoActionData {
   location: string;
   timestamp: string;
   co2Offset: number;
+  photos?: string[];
 }
 
 export interface ActionTypeOption {
