@@ -94,14 +94,15 @@ Built with **Material Design 3** principles featuring:
 - Trip tracking with GPS integration
 - Real-time dashboard and statistics
 - Achievement system and badge progress
+- Photo attachments for logged actions
 
-### 🚧 Phase 3: Enhanced Features (In Progress)
+### 🚧 Phase 3: Enhanced Features (Planned)
 - 🔜 Photo attachments for logged actions
 - 🔜 Enhanced data visualization with charts
 - 🔜 Offline data sync optimization
 - 🔜 Advanced trip analytics and insights
 
-### 📋 Phase 4: Community Features (Planned)
+### 📋 Phase 4: Community Features (Future)
 - Social profiles and action sharing
 - Group challenges and leaderboards  
 - Community cleanup coordination
@@ -171,24 +172,6 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 EXPO_PUBLIC_FIREBASE_APP_ID=your-app-id
-```
-
-### Project Structure
-```
-ecoTrack/
-├── app/                    # Expo Router pages
-│   ├── (auth)/            # Authentication screens
-│   ├── (tabs)/            # Main app tabs
-│   └── _layout.tsx        # Root layout
-├── src/
-│   ├── components/        # Reusable UI components
-│   ├── contexts/          # React Context providers
-│   ├── hooks/             # Custom React hooks
-│   ├── screens/           # Screen components
-│   ├── services/          # Data and API services
-│   ├── types/             # TypeScript definitions
-│   └── utils/             # Utility functions
-└── assets/                # Images and static files
 ```
 
 ---
