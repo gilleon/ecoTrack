@@ -7,6 +7,7 @@ import { createEcoActionData } from '../utils/dataFactory';
 import { eventEmitter, EVENTS } from '../utils/eventEmitter';
 import { useForm } from './useForm';
 import { EcoActionType, ActionTypeOption } from '../types';
+import * as FileSystem from 'expo-file-system';
 
 interface FormState {
   selectedAction: EcoActionType | null;
@@ -14,7 +15,7 @@ interface FormState {
   impact: string;
   location: string;
   isLogging: boolean;
-  photos?: string[];
+  photos: string[];
 }
 
 const INITIAL_FORM_STATE: FormState = {
@@ -23,7 +24,42 @@ const INITIAL_FORM_STATE: FormState = {
   impact: '',
   location: '',
   isLogging: false,
-  photos: undefined,
+  photos: [],
+};
+
+const savePhotosToStorage = async (photos: string[]): Promise<string[]> => {
+  if (!photos.length) return [];
+  
+  const savedPhotos: string[] = [];
+  const photosDir = `${FileSystem.documentDirectory}ecotrack_photos/`;
+  
+  const dirInfo = await FileSystem.getInfoAsync(photosDir);
+  if (!dirInfo.exists) {
+    await FileSystem.makeDirectoryAsync(photosDir, { intermediates: true });
+  }
+  
+  for (const photo of photos) {
+    try {
+      if (photo.startsWith(photosDir)) {
+        savedPhotos.push(photo);
+        continue;
+      }
+      
+      const filename = `action_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+      const newPath = `${photosDir}${filename}`;
+      
+      await FileSystem.copyAsync({
+        from: photo,
+        to: newPath,
+      });
+      
+      savedPhotos.push(newPath);
+    } catch (error) {
+      console.warn('Failed to save photo:', error);
+    }
+  }
+  
+  return savedPhotos;
 };
 
 export const useActionForm = (onActionLogged: () => void, actionTypes: ActionTypeOption[]) => {
@@ -47,6 +83,8 @@ export const useActionForm = (onActionLogged: () => void, actionTypes: ActionTyp
     updateField('isLogging', true);
 
     try {
+      const savedPhotos = await savePhotosToStorage(formState.photos);
+      
       const actionData = createEcoActionData(
         formState.selectedAction!,
         formState.description,
@@ -54,6 +92,10 @@ export const useActionForm = (onActionLogged: () => void, actionTypes: ActionTyp
         selectedActionType.impactUnit,
         formState.location
       );
+
+      if (savedPhotos.length > 0) {
+        actionData.photos = savedPhotos;
+      }
 
       await storageService.saveAction(actionData);
 
