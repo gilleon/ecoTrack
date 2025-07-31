@@ -14,6 +14,7 @@ interface FormState {
   impact: string;
   location: string;
   isLogging: boolean;
+  photos?: string[];
 }
 
 const INITIAL_FORM_STATE: FormState = {
@@ -22,6 +23,7 @@ const INITIAL_FORM_STATE: FormState = {
   impact: '',
   location: '',
   isLogging: false,
+  photos: undefined,
 };
 
 export const useActionForm = (onActionLogged: () => void, actionTypes: ActionTypeOption[]) => {
